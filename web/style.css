@@ -1,0 +1,167 @@
+:root {
+    --hover-color-difference: 5%;
+    --calc-hover: calc(100% - var(--hover-color-difference));
+    --transition-time: 0.3s;
+    --radius: 0.3rem;
+
+    --cell-size: 3rem;
+    --cell-color: hsl(0, 0%, 100%);
+    --cell-color-hover: color-mix(
+        in srgb,
+        var(--cell-color) var(--calc-hover),
+        black var(--hover-color-difference)
+    );
+    --cell-color-selected: hsl(210, 100%, 85.1%);
+    --cell-color-selected-hover: color-mix(
+        in srgb,
+        var(--cell-color-selected) var(--calc-hover),
+        black var(--hover-color-difference)
+    );
+    --cell-color-highlight: hsl(211.2, 100%, 95.1%);
+    --cell-color-highlight-hover: color-mix(
+        in srgb,
+        var(--cell-color-highlight) var(--calc-hover),
+        black var(--hover-color-difference)
+    );
+    --cell-border-color: hsl(0, 0%, 60%);
+    --cell-border-style: 0.1rem solid hsl(0, 0%, 20%);
+
+    --main-background-color: hsl(0, 0%, 96.08%);
+
+    --board-border-color: hsl(0, 0%, 20%);
+
+    --keyboard-btn-size: 3rem;
+    --keyboard-btn-color: hsl(0, 0%, 100%);
+    --keyboard-btn-color-hover: color-mix(
+        in srgb,
+        var(--keyboard-btn-color) var(--calc-hover),
+        black var(--hover-color-difference)
+    );
+}
+
+@media (max-width: 600px) {
+    :root {
+        --cell-size: calc(3rem * 0.8);
+    }
+}
+
+main {
+    background-color: var(--main-background-color);
+    font-family: Arial, sans-serif;
+    width: 100svw;
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    place-items: center;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(var(--cell-size), 1fr));
+    border: 0.1rem solid var(--board-border-color);
+}
+
+#board table {
+    border-collapse: collapse;
+    width: 100%;
+    height: 100%;
+}
+
+#board td {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid var(--cell-border-color);
+    background-color: var(--cell-color);
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--transition-time);
+}
+
+#board td:hover {
+    background-color: var(--cell-color-hover);
+}
+
+#board td[aria-selected="true"] {
+    background-color: var(--cell-color-selected);
+    font-weight: 600;
+}
+
+#board td[aria-selected="true"]:hover {
+    background-color: var(--cell-color-selected-hover);
+}
+
+#board td:nth-child(3n + 1) {
+    border-left: var(--cell-border-style);
+}
+#board tr:nth-child(3n + 1) td {
+    border-top: var(--cell-border-style);
+}
+#board td:nth-child(9n) {
+    border-right: var(--cell-border-style);
+}
+#board tr:nth-child(9n) td {
+    border-bottom: var(--cell-border-style);
+}
+
+#board
+    td:is(
+        .highlight-row,
+        .highlight-col,
+        .highlight-num,
+        .highlight-subgrid
+    ):not([aria-selected="true"]) {
+    background-color: var(--cell-color-highlight);
+}
+
+#board
+    td:is(
+        .highlight-row,
+        .highlight-col,
+        .highlight-num,
+        .highlight-subgrid
+    ):not([aria-selected="true"]):hover {
+    background-color: var(--cell-color-highlight-hover);
+}
+
+#board td.highlight-num:not([aria-selected="true"]) {
+    font-weight: 600;
+    filter: invert(100%);
+}
+
+#board td.empty-cell {
+    color: transparent;
+}
+
+#keyboard {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+#keyboard span {
+    width: var(--keyboard-btn-size);
+    height: var(--keyboard-btn-size);
+    margin: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    background-color: var(--keyboard-btn-color);
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+        background-color var(--transition-time),
+        transform var(--transition-time);
+    user-select: none;
+}
+
+#keyboard span:hover {
+    background-color: var(--keyboard-btn-color-hover);
+    transform: scale(1.1);
+}
