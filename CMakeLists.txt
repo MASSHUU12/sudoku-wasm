@@ -28,6 +28,7 @@ endif()
 add_executable(sudoku-wasm
     src/main.cpp
     src/rand.cpp
+    src/sudoku.cpp
 )
 
 target_include_directories(sudoku-wasm PRIVATE

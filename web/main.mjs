@@ -162,12 +162,4 @@ function setupKeyboard() {
 
   board = getBoard();
   drawBoard(board);
-
-  instance.exports.set_board_value(1, 1, 1);
-  instance.exports.set_board_value(2, 1, 2);
-  instance.exports.set_board_value(3, 1, 3);
-  instance.exports.set_board_value(4, 2, 1);
-  instance.exports.set_board_value(5, 2, 2);
-  instance.exports.set_board_value(6, 2, 3);
-  drawBoard(board);
 })();
