@@ -157,7 +157,7 @@ function setupKeyboard() {
 }
 
 (() => {
-  instance.exports.setup();
+  instance.exports.setup(Date.now());
   setupKeyboard();
 
   board = getBoard();

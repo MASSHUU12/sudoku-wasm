@@ -1,4 +1,8 @@
 #include <stdint.h>
+#include <stddef.h>
+#include "rand.h"
+
+uint32_t seed{};
 
 constexpr uint8_t cell_value_min = 1;
 constexpr uint8_t cell_value_max = 9;
@@ -30,5 +34,13 @@ int get_board_size() { return board_size; }
 
 uint8_t *get_board() { return board; }
 
-void setup() {}
+void setup(uint32_t new_seed) {
+  seed = new_seed;
+
+  for (size_t y = 0; y < board_side_length; ++y) {
+    for (size_t x = 0; x < board_side_length; ++x) {
+      board[get_board_index(x, y)] = random(cell_value_min, cell_value_max);
+    }
+  }
+}
 }
