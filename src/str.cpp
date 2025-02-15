@@ -33,6 +33,31 @@ void itoa(int value, char *buffer) {
   buffer[j] = '\0';
 }
 
+void utoa(size_t value, char *str) {
+  char buffer[32];
+  int pos = 0;
+
+  // Special case for 0
+  if (value == 0) {
+    str[0] = '0';
+    str[1] = '\0';
+    return;
+  }
+
+  // Convert number to string in reverse order
+  while (value > 0) {
+    buffer[pos++] = '0' + (value % 10);
+    value /= 10;
+  }
+
+  // Copy reversed string into output buffer in correct order
+  int i;
+  for (i = 0; i < pos; i++) {
+    str[i] = buffer[pos - i - 1];
+  }
+  str[i] = '\0';
+}
+
 char *strncpy(char *dest, const char *src, size_t n) {
   size_t i;
 
@@ -58,6 +83,20 @@ int mini_sprintf(char *buffer, const char *format, ...) {
   while (*format) {
     if (*format == '%') {
       format++; // Move past '%'
+
+      if (*format == 'z') {
+        if (*(format + 1) == 'u') {
+          format++; // Skip 'z' then 'u'
+          size_t size_val = va_arg(args, size_t);
+          char size_str[32];
+          utoa(size_val, size_str);
+          for (int i = 0; size_str[i] != '\0'; i++) {
+            buffer[count++] = size_str[i];
+          }
+          format++; // Move past 'u'
+          continue; // Restart loop
+        }
+      }
 
       switch (*format) {
       case 'd': // integer

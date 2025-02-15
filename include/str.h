@@ -39,6 +39,8 @@ int mini_sprintf(char *buffer, const char *format, ...);
  */
 void itoa(int value, char *buffer);
 
+void utoa(size_t value, char *str);
+
 size_t strlen(const char *str);
 
 /** Custom implementation of strcmp.
