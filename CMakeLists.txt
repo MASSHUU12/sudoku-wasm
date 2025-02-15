@@ -36,6 +36,7 @@ add_executable(sudoku-wasm
     src/main.cpp
     src/rand.cpp
     src/walloc.c
+    src/memory.cpp
     src/sudoku.cpp
     src/exact_cover.cpp
 )
