@@ -1,5 +1,6 @@
 const boardContainer = document.getElementById("board");
 const keyboard = document.getElementById("keyboard");
+const solveButton = document.getElementById("solve-button");
 const decoder = new TextDecoder("utf-8");
 
 class Cell {
@@ -40,6 +41,13 @@ function getString(ptr, len) {
 function getBoard() {
   const memory = instance.exports.memory;
   const ptr = instance.exports.get_board();
+  const len = instance.exports.get_board_size();
+  return new Uint8Array(memory.buffer, ptr, len);
+}
+
+function getSolvedBoard() {
+  const memory = instance.exports.memory;
+  const ptr = instance.exports.get_solved_board();
   const len = instance.exports.get_board_size();
   return new Uint8Array(memory.buffer, ptr, len);
 }
@@ -147,7 +155,20 @@ function onCellKeyboardItemPressed(e) {
     new Number(e.target.innerText),
     ...selectedCell.toArray(),
   );
+
+  board = getBoard();
   drawBoard(board);
+}
+
+function onSolveButtonPressed() {
+  if (!instance.exports.solve_sudoku()) {
+    console.error("Failed to solve Sudoku");
+    return;
+  }
+
+  board = getSolvedBoard();
+  drawBoard(board);
+  console.log("Sudoku solved.");
 }
 
 function setupKeyboard() {
@@ -156,10 +177,34 @@ function setupKeyboard() {
     .forEach((btn) => btn.addEventListener("click", onCellKeyboardItemPressed));
 }
 
+function drawTestBoard() {
+  const b = [
+    [5, 3, 0, 0, 7, 0, 0, 0, 0],
+    [6, 0, 0, 1, 9, 5, 0, 0, 0],
+    [0, 9, 8, 0, 0, 0, 0, 6, 0],
+    [8, 0, 0, 0, 6, 0, 0, 0, 3],
+    [4, 0, 0, 8, 0, 3, 0, 0, 1],
+    [7, 0, 0, 0, 2, 0, 0, 0, 6],
+    [0, 6, 0, 0, 0, 0, 2, 8, 0],
+    [0, 0, 0, 4, 1, 9, 0, 0, 5],
+    [0, 0, 0, 0, 8, 0, 0, 7, 9],
+  ];
+
+  for (let y = 0; y < 9; ++y) {
+    for (let x = 0; x < 9; ++x) {
+      instance.exports.set_board_value(b[y][x], x, y);
+    }
+  }
+}
+
 (() => {
   instance.exports.setup(Date.now());
   setupKeyboard();
 
+  drawTestBoard();
+
   board = getBoard();
   drawBoard(board);
+
+  solveButton.addEventListener("click", onSolveButtonPressed);
 })();
