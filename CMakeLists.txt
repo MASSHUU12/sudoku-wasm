@@ -38,7 +38,6 @@ add_executable(sudoku-wasm
     src/walloc.c
     src/memory.cpp
     src/sudoku.cpp
-    src/exact_cover.cpp
 )
 
 target_include_directories(sudoku-wasm PRIVATE
