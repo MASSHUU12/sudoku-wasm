@@ -595,3 +595,4 @@ FodyWeavers.xsd
 
 *.wat
 *.wasm
+*.mjs
