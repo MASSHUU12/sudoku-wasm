@@ -14,7 +14,7 @@
 #define LOG_BASE(func, format, ...)                                            \
   do {                                                                         \
     char buf[BUFFER_SIZE];                                                     \
-    int len = mini_sprintf(buf, (format));                                     \
+    int32_t len = mini_sprintf(buf, (format));                                 \
     if (len < 0) {                                                             \
       len = 0;                                                                 \
     } else if (len > BUFFER_SIZE - 1) {                                        \
@@ -32,14 +32,10 @@
 extern "C" {
 #endif
 
-__attribute__((visibility("default"))) void console_log(const char *message,
-                                                        int16_t length);
-__attribute__((visibility("default"))) void console_info(const char *message,
-                                                         int16_t length);
-__attribute__((visibility("default"))) void console_error(const char *message,
-                                                          int16_t length);
-__attribute__((visibility("default"))) void console_warn(const char *message,
-                                                         int16_t length);
+void console_log(const char *message, size_t length);
+void console_info(const char *message, size_t length);
+void console_error(const char *message, size_t length);
+void console_warn(const char *message, size_t length);
 
 #ifdef __cplusplus
 }

@@ -4,18 +4,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
-constexpr uint8_t minimum_clues = 17;
+#define MINIMUM_CLUES 17
 
-constexpr uint8_t box_size = 3;
-constexpr uint8_t cell_value_min = 1;
-constexpr uint8_t cell_value_max = 9;
-constexpr uint8_t cell_value_empty = 0;
+#define BOX_SIZE 3
+#define CELL_VALUE_MIN 1
+#define CELL_VALUE_MAX 9
+#define CELL_VALUE_EMPTY 0
 
-constexpr uint16_t board_side_length = 9;
-constexpr uint16_t board_size = board_side_length * board_side_length;
+#define BOARD_SIDE_LENGTH 9
+#define BOARD_SIZE (BOARD_SIDE_LENGTH * BOARD_SIDE_LENGTH)
 
-extern uint8_t board[board_size];
-extern uint8_t solved_board[board_size];
+extern uint8_t board[BOARD_SIZE];
+extern uint8_t solved_board[BOARD_SIZE];
 
 typedef struct {
   uint16_t x;
@@ -23,21 +23,27 @@ typedef struct {
   uint8_t num;
 } SudokuCell;
 
-constexpr uint16_t stack_size = board_size * 10;
-extern SudokuCell stack[stack_size];
+#define STACK_SIZE (BOARD_SIZE * 10)
+extern SudokuCell stack[STACK_SIZE];
 
-void log_board(uint8_t *b);
-
+#ifdef __cplusplus
 extern "C" {
-uint8_t *get_board();
-uint8_t *get_solved_board();
-int get_board_size();
-int get_board_side_length();
+#endif
+
+void log_board(const uint8_t *b);
+uint8_t *get_board(void);
+uint8_t *get_solved_board(void);
+int32_t get_board_size(void);
+int32_t get_board_side_length(void);
 uint16_t get_board_index(const uint16_t x, const uint16_t y);
-bool set_board_value(const uint8_t value, const uint16_t x, const uint16_t y);
-bool solve_sudoku();
-bool is_valid_number(uint8_t *board, uint8_t num, uint16_t x, uint16_t y);
-bool find_empty_cell(uint8_t *board, uint16_t *x, uint16_t *y);
+_Bool set_board_value(const uint8_t value, const uint16_t x, const uint16_t y);
+_Bool solve_sudoku(void);
+_Bool is_valid_number(const uint8_t *board, const uint8_t num, const uint16_t x,
+                      const uint16_t y);
+_Bool find_empty_cell(const uint8_t *board, uint16_t *x, uint16_t *y);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif // SUDOKU_H_

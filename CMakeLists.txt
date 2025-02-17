@@ -1,23 +1,17 @@
 cmake_minimum_required(VERSION 3.13)
-project(sudoku-wasm C CXX)
+project(sudoku-wasm C)
 
 set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=wasm32 -s -flto -nostdlib -fno-builtin-memset -Wall -Wextra -Wpedantic")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --target=wasm32 -s -flto -nostdlib -fno-builtin-memset -Wall -Wextra -Wpedantic -std=c23")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-entry -Wl,--export-all -Wl,--lto-O3 -Wl,-z,stack-size=8388608 -Wl,--allow-undefined")
 
 # Set flags for each build type
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -g")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0 -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3")
 
 # Linker flags for each configuration
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS}")
@@ -32,12 +26,12 @@ endif()
 
 # Main target
 add_executable(sudoku-wasm
-    src/str.cpp
-    src/main.cpp
-    src/rand.cpp
+    src/str.c
+    src/main.c
+    src/rand.c
     src/walloc.c
-    src/memory.cpp
-    src/sudoku.cpp
+    src/memory.c
+    src/sudoku.c
 )
 
 target_include_directories(sudoku-wasm PRIVATE

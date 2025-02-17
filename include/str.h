@@ -8,6 +8,10 @@
 #define TOSTRING(x) TOSTRING2(x)
 #define AT "[" __FILE_NAME__ ":" TOSTRING(__LINE__) "] "
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Copies up to n characters from src to dest.
  * If src is shorter than n, dest will be padded with '\0'.
@@ -51,5 +55,9 @@ size_t strlen(const char *str);
  * > 0 if str1 is greater than str2
  */
 int strcmp(const char *str1, const char *str2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // STR_H_

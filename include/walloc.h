@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-__attribute__((visibility("default"))) void* malloc(size_t size);
-__attribute__((visibility("default"))) void free(void *ptr);
+void *malloc(size_t size);
+void free(void *ptr);
 
 #ifdef __cplusplus
 }
