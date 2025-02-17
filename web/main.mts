@@ -11,13 +11,10 @@ interface WasmExports {
 }
 
 class Cell {
-  x: number;
-  y: number;
-
-  constructor(x: number, y: number) {
-    this.x = x;
-    this.y = y;
-  }
+  constructor(
+    public x: number,
+    public y: number,
+  ) {}
 
   toArray(): [number, number] {
     return [this.x, this.y];
@@ -56,15 +53,16 @@ const { instance } = await WebAssembly.instantiateStreaming(
 const exports = instance.exports as unknown as WasmExports;
 
 function getString(ptr: number, len: number): string {
-  const memory = exports.memory as WebAssembly.Memory;
-  const bytes = new Uint8Array(memory.buffer, ptr, len);
+  const bytes = new Uint8Array(exports.memory.buffer, ptr, len);
   return decoder.decode(bytes);
 }
 
 function getBoardData(getBoardFunc: Function): Uint8Array {
-  const ptr = getBoardFunc();
-  const len = exports.get_board_size();
-  return new Uint8Array(exports.memory.buffer, ptr, len);
+  return new Uint8Array(
+    exports.memory.buffer,
+    getBoardFunc(),
+    exports.get_board_size(),
+  );
 }
 
 const getBoard = (): Uint8Array => getBoardData(exports.get_board);
@@ -72,8 +70,8 @@ const getSolvedBoard = (): Uint8Array => getBoardData(exports.get_solved_board);
 
 function onBoardCellPressed(e: MouseEvent): void {
   const td = e.target as HTMLTableCellElement;
-  const x: number = +td.getAttribute("data-cell-x")!;
-  const y: number = +td.getAttribute("data-cell-y")!;
+  const x = +td.getAttribute("data-cell-x")!;
+  const y = +td.getAttribute("data-cell-y")!;
 
   selectedCell = new Cell(x, y);
   drawBoard(board);
@@ -105,89 +103,98 @@ function onSolveButtonPressed(): void {
 function drawBoard(board: Uint8Array): void {
   sideLength = sideLength || exports.get_board_side_length();
   if (!table) {
-    table = document.createElement("table");
-    rows = [];
-
-    for (let y = 0; y < sideLength; y++) {
-      const row = document.createElement("tr");
-      const cells = [];
-      for (let x = 0; x < sideLength; x++) {
-        const cell = document.createElement("td");
-
-        cell.setAttribute("data-cell-x", x.toString());
-        cell.setAttribute("data-cell-y", y.toString());
-        cell.addEventListener("click", onBoardCellPressed);
-
-        cells.push(cell);
-        row.appendChild(cell);
-      }
-      rows.push(cells);
-      table.appendChild(row);
-    }
-
-    boardContainer.appendChild(table);
+    createTable();
   }
 
   const selectedValue = selectedCell
     ? board[exports.get_board_index(...selectedCell.toArray())]
     : null;
 
-  let selectedSubgridX = -1,
-    selectedSubgridY = -1;
-  if (selectedCell) {
-    selectedSubgridX = Math.floor(selectedCell.x / 3);
-    selectedSubgridY = Math.floor(selectedCell.y / 3);
+  const selectedSubgridX = selectedCell ? Math.floor(selectedCell.x / 3) : -1;
+  const selectedSubgridY = selectedCell ? Math.floor(selectedCell.y / 3) : -1;
+
+  for (let y = 0; y < sideLength; ++y) {
+    for (let x = 0; x < sideLength; ++x) {
+      const index = exports.get_board_index(x, y);
+      const cell = rows[y][x];
+      cell.textContent = board[index].toString();
+      updateCellClasses(
+        cell,
+        x,
+        y,
+        selectedValue,
+        selectedSubgridX,
+        selectedSubgridY,
+      );
+    }
   }
+}
+
+function createTable(): void {
+  table = document.createElement("table");
+  rows = [];
 
   for (let y = 0; y < sideLength; y++) {
+    const row = document.createElement("tr");
+    const cells = [];
+
     for (let x = 0; x < sideLength; x++) {
-      const index: number = exports.get_board_index(x, y);
-      const cell: HTMLTableCellElement = rows[y][x];
-
-      cell.textContent = board[index].toString();
-      cell.classList.remove(
-        "highlight-row",
-        "highlight-col",
-        "highlight-num",
-        "highlight-subgrid",
-        "empty-cell",
-      );
-
-      if (cell.textContent === "0") {
-        cell.classList.add("empty-cell");
-      }
-
-      if (!selectedCell) {
-        continue;
-      }
-
-      const rowSelected: boolean = selectedCell.x == x;
-      const colSelected: boolean = selectedCell.y == y;
-
-      cell.setAttribute(
-        "aria-selected",
-        rowSelected && colSelected ? "true" : "false",
-      );
-
-      if (rowSelected) {
-        cell.classList.add("highlight-row");
-      }
-
-      if (colSelected) {
-        cell.classList.add("highlight-col");
-      }
-
-      if (
-        Math.floor(x / 3) === selectedSubgridX &&
-        Math.floor(y / 3) === selectedSubgridY
-      ) {
-        cell.classList.add("highlight-subgrid");
-      }
-
-      if (selectedValue && selectedValue.toString() === cell.textContent) {
-        cell.classList.add("highlight-num");
-      }
+      const cell = document.createElement("td");
+      cell.setAttribute("data-cell-x", x.toString());
+      cell.setAttribute("data-cell-y", y.toString());
+      cell.addEventListener("click", onBoardCellPressed);
+      cells.push(cell);
+      row.appendChild(cell);
     }
+
+    rows.push(cells);
+    table.appendChild(row);
+  }
+
+  boardContainer.appendChild(table);
+}
+
+function updateCellClasses(
+  cell: HTMLTableCellElement,
+  x: number,
+  y: number,
+  selectedValue: number | null,
+  selectedSubgridX: number,
+  selectedSubgridY: number,
+): void {
+  cell.classList.remove(
+    "highlight-row",
+    "highlight-col",
+    "highlight-num",
+    "highlight-subgrid",
+    "empty-cell",
+  );
+
+  if (cell.textContent === "0") {
+    cell.classList.add("empty-cell");
+  }
+
+  if (!selectedCell) return;
+
+  const rowSelected = selectedCell.x === x;
+  const colSelected = selectedCell.y === y;
+  cell.setAttribute(
+    "aria-selected",
+    rowSelected && colSelected ? "true" : "false",
+  );
+
+  if (rowSelected) cell.classList.add("highlight-row");
+  if (colSelected) cell.classList.add("highlight-col");
+
+  if (
+    Math.floor(x / 3) === selectedSubgridX &&
+    Math.floor(y / 3) === selectedSubgridY
+  ) {
+    cell.classList.add("highlight-subgrid");
+  }
+
+  if (selectedValue && selectedValue.toString() === cell.textContent) {
+    cell.classList.add("highlight-num");
   }
 }
 
@@ -217,7 +224,7 @@ function drawTestBoard(): void {
   }
 }
 
-(() => {
+(function initialize(): void {
   exports.setup(Date.now());
   setupKeyboard();
 
