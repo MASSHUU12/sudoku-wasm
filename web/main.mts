@@ -6,6 +6,7 @@ interface WasmExports {
   get_board_size: () => number;
   get_solved_board: () => number;
   get_board_side_length: () => number;
+  get_board_value: (x: number, y: number) => number;
   get_board_index: (x: number, y: number) => number;
   set_board_value: (v: number, x: number, y: number) => boolean;
 }
@@ -14,7 +15,13 @@ class Cell {
   constructor(
     public x: number,
     public y: number,
+    public num: number,
+    public prefilled: boolean,
   ) {}
+
+  static invalid(): Cell {
+    return new Cell(-1, -1, -1, false);
+  }
 
   toArray(): [number, number] {
     return [this.x, this.y];
@@ -30,9 +37,9 @@ const decoder = new TextDecoder("utf-8");
 
 let table: HTMLTableElement | null = null;
 let rows: HTMLTableCellElement[][] = [];
-let board: Uint8Array = new Uint8Array();
+let board: Cell[] = [];
 let sideLength: number = 0;
-let selectedCell: Cell = new Cell(-1, -1);
+let selectedCell: Cell = Cell.invalid();
 
 const { instance } = await WebAssembly.instantiateStreaming(
   fetch("./main.wasm"),
@@ -57,23 +64,37 @@ function getString(ptr: number, len: number): string {
   return decoder.decode(bytes);
 }
 
-function getBoardData(getBoardFunc: Function): Uint8Array {
-  return new Uint8Array(
+function getBoardData(getBoardFunc: Function): Cell[] {
+  const cells = new Uint32Array(
     exports.memory.buffer,
     getBoardFunc(),
     exports.get_board_size(),
   );
+
+  let newBoard: Cell[] = [];
+
+  for (let cell of cells) {
+    const x = (cell >> (8 * 0)) & 0xff;
+    const y = (cell >> (8 * 1)) & 0xff;
+    const num = (cell >> (8 * 2)) & 0xff;
+    const prefilled = (cell >> (8 * 3)) & 0xff;
+
+    newBoard.push(new Cell(x, y, num, !!prefilled));
+  }
+
+  return newBoard;
 }
 
-const getBoard = (): Uint8Array => getBoardData(exports.get_board);
-const getSolvedBoard = (): Uint8Array => getBoardData(exports.get_solved_board);
+const getBoard = (): Cell[] => getBoardData(exports.get_board);
+const getSolvedBoard = (): Cell[] => getBoardData(exports.get_solved_board);
 
 function onBoardCellPressed(e: MouseEvent): void {
   const td = e.target as HTMLTableCellElement;
   const x = +td.getAttribute("data-cell-x")!;
   const y = +td.getAttribute("data-cell-y")!;
+  const prefilled = !!td.getAttribute("data-cell-prefilled")!;
 
-  selectedCell = new Cell(x, y);
+  selectedCell = new Cell(x, y, +td.innerText, prefilled);
   drawBoard(board);
 }
 
@@ -100,29 +121,25 @@ function onSolveButtonPressed(): void {
   console.log("Sudoku solved.");
 }
 
-function drawBoard(board: Uint8Array): void {
+function drawBoard(board: Cell[]): void {
   sideLength = sideLength || exports.get_board_side_length();
   if (!table) {
     createTable();
   }
 
-  const selectedValue = selectedCell
-    ? board[exports.get_board_index(...selectedCell.toArray())]
-    : null;
-
-  const selectedSubgridX = selectedCell ? Math.floor(selectedCell.x / 3) : -1;
-  const selectedSubgridY = selectedCell ? Math.floor(selectedCell.y / 3) : -1;
+  const selectedSubgridX = Math.floor(selectedCell.x / 3);
+  const selectedSubgridY = Math.floor(selectedCell.y / 3);
 
   for (let y = 0; y < sideLength; ++y) {
     for (let x = 0; x < sideLength; ++x) {
       const index = exports.get_board_index(x, y);
       const cell = rows[y][x];
-      cell.textContent = board[index].toString();
+      cell.textContent = board[index].num.toString();
       updateCellClasses(
         cell,
         x,
         y,
-        selectedValue,
+        selectedCell.num,
         selectedSubgridX,
         selectedSubgridY,
       );
@@ -139,12 +156,14 @@ function createTable(): void {
     const cells = [];
 
     for (let x = 0; x < sideLength; x++) {
-      const cell = document.createElement("td");
-      cell.setAttribute("data-cell-x", x.toString());
-      cell.setAttribute("data-cell-y", y.toString());
-      cell.addEventListener("click", onBoardCellPressed);
-      cells.push(cell);
-      row.appendChild(cell);
+      const cellItem = document.createElement("td");
+      const cell: Cell = board[exports.get_board_index(x, y)];
+      cellItem.setAttribute("data-cell-x", x.toString());
+      cellItem.setAttribute("data-cell-y", y.toString());
+      cellItem.setAttribute("data-cell-prefilled", cell.prefilled ? "1" : "0");
+      cellItem.addEventListener("click", onBoardCellPressed);
+      cells.push(cellItem);
+      row.appendChild(cellItem);
     }
 
     rows.push(cells);
@@ -158,7 +177,7 @@ function updateCellClasses(
   cell: HTMLTableCellElement,
   x: number,
   y: number,
-  selectedValue: number | null,
+  selectedValue: number,
   selectedSubgridX: number,
   selectedSubgridY: number,
 ): void {
@@ -193,7 +212,10 @@ function updateCellClasses(
     cell.classList.add("highlight-subgrid");
   }
 
-  if (selectedValue && selectedValue.toString() === cell.textContent) {
+  if (
+    selectedValue.toString() === cell.textContent &&
+    cell.textContent !== "0"
+  ) {
     cell.classList.add("highlight-num");
   }
 }
@@ -231,6 +253,7 @@ function drawTestBoard(): void {
   drawTestBoard();
 
   board = getBoard();
+  console.log(board);
   drawBoard(board);
 
   solveButton.addEventListener("click", onSolveButtonPressed);
