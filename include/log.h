@@ -2,6 +2,7 @@
 #define LOG_H_
 
 #include "str.h"
+#include <stdarg.h>
 #include <stdint.h>
 
 #define LOG(message) console_log(AT message, sizeof(AT message) - 1)
@@ -14,13 +15,13 @@
 #define LOG_BASE(func, format, ...)                                            \
   do {                                                                         \
     char buf[BUFFER_SIZE];                                                     \
-    int32_t len = mini_sprintf(buf, (format));                                 \
+    int32_t len = mini_sprintf(buf, (format), __VA_ARGS__);                    \
     if (len < 0) {                                                             \
       len = 0;                                                                 \
     } else if (len > BUFFER_SIZE - 1) {                                        \
       len = BUFFER_SIZE - 1;                                                   \
     }                                                                          \
-    func(buf, (int16_t)len);                                                   \
+    func(buf, (int32_t)len);                                                   \
   } while (0)
 
 #define LOGF(format, ...) LOG_BASE(console_log, format, __VA_ARGS__)
