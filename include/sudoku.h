@@ -33,7 +33,6 @@ extern SudokuCell stack[STACK_SIZE];
 extern "C" {
 #endif
 
-void log_board(const SudokuCell *b);
 SudokuCell *get_board(void);
 SudokuCell *get_solved_board(void);
 uint8_t get_board_size(void);
@@ -43,12 +42,10 @@ SudokuValue get_board_value(const uint8_t x, const uint8_t y);
 _Bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
                       _Bool prefilled);
 _Bool solve_sudoku(void);
-_Bool is_valid_number(const SudokuCell *board, const uint8_t num,
-                      const uint8_t x, const uint8_t y);
 _Bool is_correct_attempt(const SudokuValue value, const uint8_t x,
                          const uint8_t y);
-_Bool find_empty_cell(const SudokuCell *board, uint8_t *x, uint8_t *y);
 void fill_test_board(void);
+void fill_random_board(void);
 
 #ifdef __cplusplus
 }

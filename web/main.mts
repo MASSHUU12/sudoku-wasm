@@ -15,6 +15,7 @@ interface WasmExports {
     prefilled: boolean,
   ) => boolean;
   fill_test_board: () => void;
+  fill_random_board: () => void;
   is_correct_attempt: (v: number, x: number, y: number) => boolean;
 }
 
@@ -119,7 +120,9 @@ function onCellKeyboardItemPressed(e: MouseEvent): void {
   board = getBoard();
 
   selectedCell = board[exports.get_board_index(x, y)];
-  selectedCell.incorrect = !exports.is_correct_attempt(value, x, y);
+  if (selectedCell.num !== 0) {
+    selectedCell.incorrect = !exports.is_correct_attempt(value, x, y);
+  }
 
   drawBoard(board);
 }
@@ -249,7 +252,7 @@ function setupKeyboard(): void {
   exports.setup(Date.now());
   setupKeyboard();
 
-  exports.fill_test_board();
+  exports.fill_random_board();
   exports.solve_sudoku();
 
   board = getBoard();

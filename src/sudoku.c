@@ -1,6 +1,7 @@
 #include "sudoku.h"
 #include "log.h"
 #include "memory.h"
+#include "rand.h"
 #include "str.h"
 #include <stddef.h>
 
@@ -25,7 +26,7 @@ _Bool pop(SudokuCell *cell) {
   return 1;
 }
 
-void log_board(const SudokuCell *b) {
+static void log_board(const SudokuCell *b) {
   for (uint16_t y = 0; y < BOARD_SIDE_LENGTH; ++y) {
     char buffer[BOARD_SIDE_LENGTH * 2] = {0};
     for (uint16_t x = 0; x < BOARD_SIDE_LENGTH; ++x) {
@@ -65,8 +66,8 @@ SudokuCell *get_board(void) { return board; }
 
 SudokuCell *get_solved_board(void) { return solved_board; }
 
-_Bool is_valid_number(const SudokuCell *board, const uint8_t num,
-                      const uint8_t x, const uint8_t y) {
+static _Bool is_valid_number(const SudokuCell *board, const uint8_t num,
+                             const uint8_t x, const uint8_t y) {
   const uint8_t box_x = (x / BOX_SIZE) * BOX_SIZE;
   const uint8_t box_y = (y / BOX_SIZE) * BOX_SIZE;
 
@@ -94,7 +95,7 @@ _Bool is_correct_attempt(const SudokuValue value, const uint8_t x,
   return value == solved_board[get_board_index(x, y)].num;
 }
 
-_Bool find_empty_cell(const SudokuCell *board, uint8_t *x, uint8_t *y) {
+static _Bool find_empty_cell(const SudokuCell *board, uint8_t *x, uint8_t *y) {
   for (uint8_t i = 0; i < BOARD_SIDE_LENGTH; ++i) {
     for (uint8_t j = 0; j < BOARD_SIDE_LENGTH; ++j) {
       if (board[get_board_index(j, i)].num == CELL_VALUE_EMPTY) {
@@ -114,12 +115,10 @@ _Bool solve_sudoku(void) {
 
   uint8_t x = 0, y = 0;
   if (!find_empty_cell(solved_board, &x, &y)) {
-    log_board(solved_board);
     return 1;
   }
 
-  const SudokuCell initial = {x, y, CELL_VALUE_MIN, 0};
-  if (!push(initial)) {
+  if (!push((SudokuCell){x, y, CELL_VALUE_MIN, 0})) {
     return 0;
   }
 
@@ -143,7 +142,6 @@ _Bool solve_sudoku(void) {
         }
 
         if (!find_empty_cell(solved_board, &x, &y)) {
-          log_board(solved_board);
           return 1;
         }
 
@@ -180,4 +178,106 @@ void fill_test_board(void) {
       set_board_value(b[y][x], x, y, b[y][x] != 0);
     }
   }
+}
+
+static void shuffle_array(uint8_t *array, size_t n) {
+  if (n > 1) {
+    for (size_t i = 0; i < n - 1; i++) {
+      size_t j = i + random(0, n - i - 1);
+      uint8_t t = array[j];
+      array[j] = array[i];
+      array[i] = t;
+    }
+  }
+}
+
+static _Bool generate_solved_board(void) {
+  uint8_t numbers[BOARD_SIDE_LENGTH];
+  for (uint8_t i = 0; i < BOARD_SIDE_LENGTH; ++i) {
+    numbers[i] = i + 1;
+  }
+
+  shuffle_array(numbers, BOARD_SIDE_LENGTH);
+
+  for (uint8_t y = 0; y < BOARD_SIDE_LENGTH; ++y) {
+    for (uint8_t x = 0; x < BOARD_SIDE_LENGTH; ++x) {
+      set_board_value(CELL_VALUE_EMPTY, x, y, 0);
+    }
+  }
+
+  uint8_t x = 0, y = 0;
+  find_empty_cell(board, &x, &y);
+
+  for (uint8_t i = 0; i < BOARD_SIDE_LENGTH; ++i) {
+    if (is_valid_number(board, numbers[i], x, y)) {
+      board[get_board_index(x, y)].num = numbers[i];
+      if (solve_sudoku()) {
+        return 1;
+      }
+      board[get_board_index(x, y)].num = CELL_VALUE_EMPTY;
+    }
+  }
+
+  return 0;
+}
+
+static uint8_t count_solutions(SudokuCell *board) {
+  uint8_t x = 0, y = 0;
+  if (!find_empty_cell(board, &x, &y)) {
+    return 1;
+  }
+
+  uint8_t count = 0;
+  for (uint8_t num = CELL_VALUE_MIN; num <= CELL_VALUE_MAX; ++num) {
+    if (is_valid_number(board, num, x, y)) {
+      board[get_board_index(x, y)].num = num;
+      count += count_solutions(board);
+      if (count > 1) {
+        break;
+      }
+      board[get_board_index(x, y)].num = CELL_VALUE_EMPTY;
+    }
+  }
+
+  return count;
+}
+
+void fill_random_board(void) {
+  if (!generate_solved_board()) {
+    LOG("Failed to generate a solved board");
+    return;
+  }
+
+  memcpy(board, solved_board, BOARD_SIZE * sizeof(SudokuCell));
+
+  uint8_t indices[BOARD_SIZE];
+  for (uint8_t i = 0; i < BOARD_SIZE; ++i) {
+    indices[i] = i;
+  }
+
+  shuffle_array(indices, BOARD_SIZE);
+
+  // Remove numbers from the board until the desired number of clues is reached
+  uint8_t removed = 0;
+  for (uint8_t i = 0; i < BOARD_SIZE && (BOARD_SIZE - removed) > MINIMUM_CLUES; ++i) {
+    uint8_t index = indices[i];
+    uint8_t x = index % BOARD_SIDE_LENGTH;
+    uint8_t y = index / BOARD_SIDE_LENGTH;
+
+    SudokuValue backup = board[index].num;
+    set_board_value(CELL_VALUE_EMPTY, x, y, 0);
+
+    // Create a copy of the board and solve it to check for uniqueness;
+    SudokuCell temp_board[BOARD_SIZE];
+    memcpy(temp_board, board, BOARD_SIZE * sizeof(SudokuCell));
+
+    if (count_solutions(temp_board) != 1) {
+      // If the board does not have a unique solution, restore the number
+      set_board_value(backup, x, y, 0);
+    } else {
+      removed++;
+    }
+  }
+
+  log_board(board);
 }
