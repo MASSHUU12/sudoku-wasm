@@ -29,7 +29,7 @@ void log_board(const SudokuCell *b) {
   for (uint16_t y = 0; y < BOARD_SIDE_LENGTH; ++y) {
     char buffer[BOARD_SIDE_LENGTH * 2] = {0};
     for (uint16_t x = 0; x < BOARD_SIDE_LENGTH; ++x) {
-      mini_sprintf(buffer + x * 2, "%d ", b[y * BOARD_SIDE_LENGTH + x]);
+      mini_sprintf(buffer + x * 2, "%d ", b[y * BOARD_SIDE_LENGTH + x].num);
     }
     console_log(buffer, BOARD_SIDE_LENGTH * 2);
   }
@@ -43,13 +43,13 @@ SudokuValue get_board_value(const uint8_t x, const uint8_t y) {
   return board[get_board_index(x, y)].num;
 }
 
-_Bool set_board_value(const SudokuValue value, const uint8_t x,
-                      const uint8_t y, _Bool prefilled) {
+_Bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
+                      _Bool prefilled) {
   if (x >= BOARD_SIDE_LENGTH || y >= BOARD_SIDE_LENGTH) {
     return 0;
   }
 
-  SudokuCell* cell = &board[get_board_index(x, y)];
+  SudokuCell *cell = &board[get_board_index(x, y)];
   cell->x = x;
   cell->y = y;
   cell->num = value;
@@ -67,18 +67,18 @@ SudokuCell *get_solved_board(void) { return solved_board; }
 
 _Bool is_valid_number(const SudokuCell *board, const uint8_t num,
                       const uint8_t x, const uint8_t y) {
-  const uint16_t box_x = (x / BOX_SIZE) * BOX_SIZE;
-  const uint16_t box_y = (y / BOX_SIZE) * BOX_SIZE;
+  const uint8_t box_x = (x / BOX_SIZE) * BOX_SIZE;
+  const uint8_t box_y = (y / BOX_SIZE) * BOX_SIZE;
 
-  for (uint16_t i = 0; i < BOARD_SIDE_LENGTH; i++) {
+  for (uint8_t i = 0; i < BOARD_SIDE_LENGTH; i++) {
     if ((board[get_board_index(i, y)].num == num && i != x) ||
         (board[get_board_index(x, i)].num == num && i != y)) {
       return 0;
     }
   }
 
-  for (uint16_t i = 0; i < BOX_SIZE; i++) {
-    for (uint16_t j = 0; j < BOX_SIZE; j++) {
+  for (uint8_t i = 0; i < BOX_SIZE; i++) {
+    for (uint8_t j = 0; j < BOX_SIZE; j++) {
       if (board[get_board_index(box_x + i, box_y + j)].num == num &&
           (box_x + i != x || box_y + j != y)) {
         return 0;
@@ -87,6 +87,11 @@ _Bool is_valid_number(const SudokuCell *board, const uint8_t num,
   }
 
   return 1;
+}
+
+_Bool is_correct_attempt(const SudokuValue value, const uint8_t x,
+                         const uint8_t y) {
+  return value == solved_board[get_board_index(x, y)].num;
 }
 
 _Bool find_empty_cell(const SudokuCell *board, uint8_t *x, uint8_t *y) {
@@ -161,18 +166,13 @@ _Bool solve_sudoku(void) {
   return 0;
 }
 
-void fill_test_board(void)
-{
+void fill_test_board(void) {
   static const SudokuValue b[9][9] = {
-    {5, 3, 0, 0, 7, 0, 0, 0, 0},
-    {6, 0, 0, 1, 9, 5, 0, 0, 0},
-    {0, 9, 8, 0, 0, 0, 0, 6, 0},
-    {8, 0, 0, 0, 6, 0, 0, 0, 3},
-    {4, 0, 0, 8, 0, 3, 0, 0, 1},
-    {7, 0, 0, 0, 2, 0, 0, 0, 6},
-    {0, 6, 0, 0, 0, 0, 2, 8, 0},
-    {0, 0, 0, 4, 1, 9, 0, 0, 5},
-    {0, 0, 0, 0, 8, 0, 0, 7, 9},
+      {5, 3, 0, 0, 7, 0, 0, 0, 0}, {6, 0, 0, 1, 9, 5, 0, 0, 0},
+      {0, 9, 8, 0, 0, 0, 0, 6, 0}, {8, 0, 0, 0, 6, 0, 0, 0, 3},
+      {4, 0, 0, 8, 0, 3, 0, 0, 1}, {7, 0, 0, 0, 2, 0, 0, 0, 6},
+      {0, 6, 0, 0, 0, 0, 2, 8, 0}, {0, 0, 0, 4, 1, 9, 0, 0, 5},
+      {0, 0, 0, 0, 8, 0, 0, 7, 9},
   };
 
   for (SudokuValue y = 0; y < 9; ++y) {

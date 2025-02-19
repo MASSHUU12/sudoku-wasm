@@ -16,6 +16,12 @@
         var(--cell-color) var(--calc-hover),
         black var(3%)
     );
+    --cell-color-incorrect: hsl(3, 100%, 69%);
+    --cell-color-incorrect-hover: color-mix(
+        in srgb,
+        var(--cell-color-incorrect) var(--calc-hover),
+        black var(--hover-color-difference)
+    );
     --cell-color-selected: hsl(210, 100%, 85.1%);
     --cell-color-selected-hover: color-mix(
         in srgb,
@@ -118,7 +124,7 @@ main {
         .highlight-col,
         .highlight-num,
         .highlight-subgrid
-    ):not([aria-selected="true"]) {
+    ):not([aria-selected="true"]):not(.incorrect-cell) {
     background-color: var(--cell-color-highlight);
 }
 
@@ -128,7 +134,7 @@ main {
         .highlight-col,
         .highlight-num,
         .highlight-subgrid
-    ):not([aria-selected="true"]):hover {
+    ):not([aria-selected="true"]):not(.incorrect-cell):hover {
     background-color: var(--cell-color-highlight-hover);
 }
 
@@ -139,6 +145,14 @@ main {
 
 #board td.empty-cell {
     color: transparent;
+}
+
+#board td.incorrect-cell {
+    background-color: var(--cell-color-incorrect);
+}
+
+#board td.incorrect-cell:hover {
+    background-color: var(--cell-color-incorrect-hover);
 }
 
 #board td[data-cell-prefilled="1"] {

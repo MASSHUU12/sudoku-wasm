@@ -15,6 +15,7 @@ interface WasmExports {
     prefilled: boolean,
   ) => boolean;
   fill_test_board: () => void;
+  is_correct_attempt: (v: number, x: number, y: number) => boolean;
 }
 
 class Cell {
@@ -23,10 +24,11 @@ class Cell {
     public y: number,
     public num: number,
     public prefilled: boolean,
+    public incorrect: boolean,
   ) {}
 
   static invalid(): Cell {
-    return new Cell(-1, -1, -1, false);
+    return new Cell(-1, -1, -1, false, false);
   }
 
   toArray(): [number, number] {
@@ -85,7 +87,7 @@ function getBoardData(getBoardFunc: Function): Cell[] {
     const num = (cell >> (8 * 2)) & 0xff;
     const prefilled = (cell >> (8 * 3)) & 0xff;
 
-    newBoard.push(new Cell(x, y, num, !!prefilled));
+    newBoard.push(new Cell(x, y, num, !!prefilled, false));
   }
 
   return newBoard;
@@ -98,22 +100,27 @@ function onBoardCellPressed(e: MouseEvent): void {
   const td = e.target as HTMLTableCellElement;
   const x = +td.getAttribute("data-cell-x")!;
   const y = +td.getAttribute("data-cell-y")!;
-  const prefilled = !!+td.getAttribute("data-cell-prefilled")!;
+  const prefilled: boolean = !!+td.getAttribute("data-cell-prefilled")!;
+  const incorrect: boolean = td.classList.contains("incorrect-cell");
 
-  selectedCell = new Cell(x, y, +td.innerText, prefilled);
+  selectedCell = board[exports.get_board_index(x, y)];
+  selectedCell.prefilled = prefilled;
+  selectedCell.incorrect = incorrect;
   drawBoard(board);
 }
 
 function onCellKeyboardItemPressed(e: MouseEvent): void {
   if (selectedCell.prefilled) return;
 
-  exports.set_board_value(
-    +(e.target as HTMLSpanElement).innerText!,
-    ...selectedCell.toArray(),
-    false,
-  );
+  const value: number = +(e.target as HTMLSpanElement).innerText!;
+  const [x, y] = selectedCell.toArray();
 
+  exports.set_board_value(value, x, y, false);
   board = getBoard();
+
+  selectedCell = board[exports.get_board_index(x, y)];
+  selectedCell.incorrect = !exports.is_correct_attempt(value, x, y);
+
   drawBoard(board);
 }
 
@@ -194,6 +201,7 @@ function updateCellClasses(
     "highlight-num",
     "highlight-subgrid",
     "empty-cell",
+    "incorrect-cell",
   );
 
   if (cell.textContent === "0") {
@@ -225,6 +233,10 @@ function updateCellClasses(
   ) {
     cell.classList.add("highlight-num");
   }
+
+  if (board[exports.get_board_index(x, y)].incorrect) {
+    cell.classList.add("incorrect-cell");
+  }
 }
 
 function setupKeyboard(): void {
@@ -238,6 +250,7 @@ function setupKeyboard(): void {
   setupKeyboard();
 
   exports.fill_test_board();
+  exports.solve_sudoku();
 
   board = getBoard();
   drawBoard(board);
