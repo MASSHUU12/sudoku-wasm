@@ -23,10 +23,10 @@
     func(buf, (int16_t)len);                                                   \
   } while (0)
 
-#define LOGF(format, ...) LOG_BASE(console_log, format)
-#define INFOF(format, ...) LOG_BASE(console_info, format)
-#define ERRORF(format, ...) LOG_BASE(console_error, format)
-#define WARNF(format, ...) LOG_BASE(console_warn, format)
+#define LOGF(format, ...) LOG_BASE(console_log, format, __VA_ARGS__)
+#define INFOF(format, ...) LOG_BASE(console_info, format, __VA_ARGS__)
+#define ERRORF(format, ...) LOG_BASE(console_error, format, __VA_ARGS__)
+#define WARNF(format, ...) LOG_BASE(console_warn, format, __VA_ARGS__)
 
 #ifdef __cplusplus
 extern "C" {
