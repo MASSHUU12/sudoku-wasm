@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- A C++ compiler.
+- A C compiler.
 
 ## Build Instructions
 

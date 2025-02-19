@@ -44,7 +44,7 @@ SudokuValue get_board_value(const uint8_t x, const uint8_t y) {
 }
 
 _Bool set_board_value(const SudokuValue value, const uint8_t x,
-                      const uint8_t y) {
+                      const uint8_t y, _Bool prefilled) {
   if (x >= BOARD_SIDE_LENGTH || y >= BOARD_SIDE_LENGTH) {
     return 0;
   }
@@ -53,6 +53,7 @@ _Bool set_board_value(const SudokuValue value, const uint8_t x,
   cell->x = x;
   cell->y = y;
   cell->num = value;
+  cell->prefilled = prefilled;
   return 1;
 }
 
@@ -158,4 +159,25 @@ _Bool solve_sudoku(void) {
   }
 
   return 0;
+}
+
+void fill_test_board(void)
+{
+  static const SudokuValue b[9][9] = {
+    {5, 3, 0, 0, 7, 0, 0, 0, 0},
+    {6, 0, 0, 1, 9, 5, 0, 0, 0},
+    {0, 9, 8, 0, 0, 0, 0, 6, 0},
+    {8, 0, 0, 0, 6, 0, 0, 0, 3},
+    {4, 0, 0, 8, 0, 3, 0, 0, 1},
+    {7, 0, 0, 0, 2, 0, 0, 0, 6},
+    {0, 6, 0, 0, 0, 0, 2, 8, 0},
+    {0, 0, 0, 4, 1, 9, 0, 0, 5},
+    {0, 0, 0, 0, 8, 0, 0, 7, 9},
+  };
+
+  for (SudokuValue y = 0; y < 9; ++y) {
+    for (SudokuValue x = 0; x < 9; ++x) {
+      set_board_value(b[y][x], x, y, b[y][x] != 0);
+    }
+  }
 }

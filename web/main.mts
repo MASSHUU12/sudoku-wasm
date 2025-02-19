@@ -8,7 +8,13 @@ interface WasmExports {
   get_board_side_length: () => number;
   get_board_value: (x: number, y: number) => number;
   get_board_index: (x: number, y: number) => number;
-  set_board_value: (v: number, x: number, y: number) => boolean;
+  set_board_value: (
+    v: number,
+    x: number,
+    y: number,
+    prefilled: boolean,
+  ) => boolean;
+  fill_test_board: () => void;
 }
 
 class Cell {
@@ -92,18 +98,19 @@ function onBoardCellPressed(e: MouseEvent): void {
   const td = e.target as HTMLTableCellElement;
   const x = +td.getAttribute("data-cell-x")!;
   const y = +td.getAttribute("data-cell-y")!;
-  const prefilled = !!td.getAttribute("data-cell-prefilled")!;
+  const prefilled = !!+td.getAttribute("data-cell-prefilled")!;
 
   selectedCell = new Cell(x, y, +td.innerText, prefilled);
   drawBoard(board);
 }
 
 function onCellKeyboardItemPressed(e: MouseEvent): void {
-  if (!selectedCell) return;
+  if (selectedCell.prefilled) return;
 
   exports.set_board_value(
     +(e.target as HTMLSpanElement).innerText!,
     ...selectedCell.toArray(),
+    false,
   );
 
   board = getBoard();
@@ -226,34 +233,13 @@ function setupKeyboard(): void {
     .forEach((btn) => btn.addEventListener("click", onCellKeyboardItemPressed));
 }
 
-function drawTestBoard(): void {
-  const b = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9],
-  ];
-
-  for (let y = 0; y < 9; ++y) {
-    for (let x = 0; x < 9; ++x) {
-      exports.set_board_value(b[y][x], x, y);
-    }
-  }
-}
-
 (function initialize(): void {
   exports.setup(Date.now());
   setupKeyboard();
 
-  drawTestBoard();
+  exports.fill_test_board();
 
   board = getBoard();
-  console.log(board);
   drawBoard(board);
 
   solveButton.addEventListener("click", onSolveButtonPressed);

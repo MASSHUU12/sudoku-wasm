@@ -11,6 +11,11 @@
         var(--cell-color) var(--calc-hover),
         black var(--hover-color-difference)
     );
+    --cell-color-prefilled: color-mix(
+        in srgb,
+        var(--cell-color) var(--calc-hover),
+        black var(3%)
+    );
     --cell-color-selected: hsl(210, 100%, 85.1%);
     --cell-color-selected-hover: color-mix(
         in srgb,
@@ -134,6 +139,14 @@ main {
 
 #board td.empty-cell {
     color: transparent;
+}
+
+#board td[data-cell-prefilled="1"] {
+    background-color: var(--cell-color-prefilled);
+}
+
+#board td:is([data-cell-prefilled="1"]):is([aria-selected="true"]) {
+    background-color: var(--cell-color-highlight);
 }
 
 #keyboard {

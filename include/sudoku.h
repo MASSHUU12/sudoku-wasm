@@ -41,11 +41,12 @@ uint8_t get_board_side_length(void);
 uint8_t get_board_index(const uint8_t x, const uint8_t y);
 SudokuValue get_board_value(const uint8_t x, const uint8_t y);
 _Bool set_board_value(const SudokuValue value, const uint8_t x,
-                      const uint8_t y);
+                      const uint8_t y, _Bool prefilled);
 _Bool solve_sudoku(void);
 _Bool is_valid_number(const SudokuCell *board, const uint8_t num,
                       const uint8_t x, const uint8_t y);
 _Bool find_empty_cell(const SudokuCell *board, uint8_t *x, uint8_t *y);
+void fill_test_board(void);
 
 #ifdef __cplusplus
 }
