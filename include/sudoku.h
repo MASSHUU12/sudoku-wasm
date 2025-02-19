@@ -20,7 +20,7 @@ typedef struct {
   uint8_t x;
   uint8_t y;
   SudokuValue num;
-  _Bool prefilled;
+  bool prefilled;
 } SudokuCell;
 
 extern SudokuCell board[BOARD_SIZE];
@@ -39,10 +39,10 @@ uint8_t get_board_size(void);
 uint8_t get_board_side_length(void);
 uint8_t get_board_index(const uint8_t x, const uint8_t y);
 SudokuValue get_board_value(const uint8_t x, const uint8_t y);
-_Bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
-                      _Bool prefilled);
-_Bool solve_sudoku(void);
-_Bool is_correct_attempt(const SudokuValue value, const uint8_t x,
+bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
+                      bool prefilled);
+bool solve_sudoku(void);
+bool is_correct_attempt(const SudokuValue value, const uint8_t x,
                          const uint8_t y);
 void fill_test_board(void);
 void fill_random_board(void);

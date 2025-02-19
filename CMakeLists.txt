@@ -3,10 +3,10 @@ project(sudoku-wasm C)
 
 set(CMAKE_C_COMPILER clang)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=wasm32 -s -flto -nostdlib -fno-builtin-memset -Wall -Wextra -Wpedantic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --target=wasm32 -s -flto -nostdlib -fno-builtin-memset -Wall -Wextra -Wpedantic -std=c23")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--no-entry -Wl,--export-all -Wl,--lto-O3 -Wl,-z,stack-size=8388608 -Wl,--allow-undefined")
 
 # Set flags for each build type
