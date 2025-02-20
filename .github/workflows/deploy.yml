@@ -32,7 +32,7 @@ jobs:
       - name: Build WASM
         run: |
           mkdir -p build && cd build
-          cmake ../
+          cmake -DCMAKE_EXE_LINKER_FLAGS="" -DCMAKE_BUILD_TYPE=Release ..
           make
           cd ../
       - name: Build JavaScript
