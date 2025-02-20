@@ -27,7 +27,8 @@ jobs:
       - name: Install clang and other tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang bun cmake
+          sudo apt-get install -y clang cmake
+          curl -fsSL https://bun.sh/install | bash
       - name: Build WASM
         run: |
           mkdir -p build && cd build
