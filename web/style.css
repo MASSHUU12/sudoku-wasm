@@ -38,14 +38,15 @@
     --cell-border-style: 0.1rem solid hsl(0, 0%, 20%);
 
     --main-background-color: hsl(0, 0%, 96.08%);
-
     --board-border-color: hsl(0, 0%, 20%);
 
     --keyboard-btn-size: 3rem;
-    --keyboard-btn-color: hsl(0, 0%, 100%);
-    --keyboard-btn-color-hover: color-mix(
+
+    --button-border-color: hsl(0, 0%, 80%);
+    --button-color: hsl(0, 0%, 100%);
+    --button-color-hover: color-mix(
         in srgb,
-        var(--keyboard-btn-color) var(--calc-hover),
+        var(--button-color) var(--calc-hover),
         black var(--hover-color-difference)
     );
 }
@@ -65,6 +66,24 @@ main {
     flex-direction: column;
     justify-content: center;
     place-items: center;
+    gap: 1rem;
+}
+
+button {
+    padding: var(--radius);
+    border: 1px solid var(--button-border-color);
+    border-radius: var(--radius);
+    background-color: var(--button-color);
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+        background-color var(--transition-time),
+        transform var(--transition-time);
+}
+
+button:hover {
+    background-color: var(--button-color-hover);
+    transform: scale(1.1);
 }
 
 #board {
@@ -167,28 +186,11 @@ main {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    margin-top: 1rem;
+    gap: calc(var(--radius) * 2);
 }
 
-#keyboard span {
+#keyboard button {
     width: var(--keyboard-btn-size);
     height: var(--keyboard-btn-size);
-    margin: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ccc;
-    border-radius: var(--radius);
-    background-color: var(--keyboard-btn-color);
-    font-size: 1rem;
-    cursor: pointer;
-    transition:
-        background-color var(--transition-time),
-        transform var(--transition-time);
     user-select: none;
-}
-
-#keyboard span:hover {
-    background-color: var(--keyboard-btn-color-hover);
-    transform: scale(1.1);
 }
