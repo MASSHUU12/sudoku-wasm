@@ -96,11 +96,20 @@ static bool find_empty_cell(const SudokuCell *board, uint8_t *x, uint8_t *y) {
   return false;
 }
 
+static void copy_board_with_prefilled(SudokuCell *dest, const SudokuCell *src) {
+  for (uint8_t i = 0; i < BOARD_SIZE; ++i) {
+    dest[i].x = src[i].x;
+    dest[i].y = src[i].y;
+    dest[i].num = src[i].num;
+    dest[i].prefilled = src[i].prefilled;
+  }
+}
+
 // Sudoku solving functions
 bool solve_sudoku(void) {
   stack_top = -1;
 
-  memcpy(solved_board, board, BOARD_SIZE);
+  copy_board_with_prefilled(solved_board, board);
 
   uint8_t x = 0, y = 0;
   if (!find_empty_cell(solved_board, &x, &y)) {
@@ -117,8 +126,12 @@ bool solve_sudoku(void) {
       break;
     }
 
-    bool found = 0;
+    bool found = false;
     const uint8_t cell_index = get_board_index(current.x, current.y);
+
+    if (solved_board[cell_index].prefilled) {
+      continue;
+    }
 
     for (uint8_t num = current.num; num <= CELL_VALUE_MAX; ++num) {
       if (is_valid_number(solved_board, num, current.x, current.y)) {
@@ -138,7 +151,7 @@ bool solve_sudoku(void) {
           return false;
         }
 
-        found = 1;
+        found = true;
         break;
       }
     }
@@ -290,7 +303,9 @@ bool is_correct_attempt(const SudokuValue value, const uint8_t x,
 
 bool is_board_solved() {
   for (uint8_t i = 0; i < BOARD_SIZE; ++i) {
-    if (board[i].num != solved_board[i].num) return false;
+    if (board[i].num != solved_board[i].num) {
+      return false;
+    }
   }
 
   return true;

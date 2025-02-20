@@ -185,7 +185,6 @@ function createTable(): void {
 
     for (let x = 0; x < sideLength; x++) {
       const cellItem = document.createElement("td");
-      const cell: Cell = board[wasm.exports!.get_board_index(x, y)];
       cellItem.setAttribute("data-cell-x", x.toString());
       cellItem.setAttribute("data-cell-y", y.toString());
       cellItem.addEventListener("click", onBoardCellPressed);
