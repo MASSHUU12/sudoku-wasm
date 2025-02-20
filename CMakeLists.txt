@@ -55,7 +55,7 @@ add_custom_target(
 # Custom target to serve the ./web directory using Python
 add_custom_target(
     serve
-    COMMAND python3 -m http.server -d "${CMAKE_CURRENT_SOURCE_DIR}/web"
+    COMMAND python3 -m http.server 8000 --bind 0.0.0.0 -d "${CMAKE_CURRENT_SOURCE_DIR}/web"
     DEPENDS sudoku-wasm
     COMMENT "Serving ./web directory on localhost"
 )

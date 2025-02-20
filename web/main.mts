@@ -19,6 +19,7 @@ interface WasmExports {
   fill_test_board: () => void;
   fill_random_board: () => void;
   is_correct_attempt: (v: number, x: number, y: number) => boolean;
+  is_board_solved: () => boolean;
 }
 
 class Cell {
@@ -45,12 +46,21 @@ const keyboard = document.getElementById("keyboard") as HTMLDivElement;
 const solveButton = document.getElementById(
   "solve-button",
 ) as HTMLButtonElement;
+const randomButton = document.getElementById(
+  "random-button",
+) as HTMLButtonElement;
 
 let table: HTMLTableElement | null = null;
 let rows: HTMLTableCellElement[][] = [];
 let board: Cell[] = [];
 let sideLength: number = 0;
 let selectedCell: Cell = Cell.invalid();
+let isBoardLocked = false;
+
+function lockTheBoard(): void {
+  isBoardLocked = true;
+  selectedCell = Cell.invalid();
+}
 
 function getBoardData(getBoardFunc: Function): Cell[] {
   const cells = new Uint32Array(
@@ -78,6 +88,8 @@ const getSolvedBoard = (): Cell[] =>
   getBoardData(wasm.exports!.get_solved_board);
 
 function onBoardCellPressed(e: MouseEvent): void {
+  if (isBoardLocked) return;
+
   const td = e.target as HTMLTableCellElement;
   const x = +td.getAttribute("data-cell-x")!;
   const y = +td.getAttribute("data-cell-y")!;
@@ -91,7 +103,7 @@ function onBoardCellPressed(e: MouseEvent): void {
 }
 
 function onCellKeyboardItemPressed(e: MouseEvent): void {
-  if (selectedCell.prefilled) return;
+  if (selectedCell.prefilled || isBoardLocked) return;
 
   const value: number = +(e.target as HTMLSpanElement).innerText!;
   const [x, y] = selectedCell.toArray();
@@ -102,6 +114,11 @@ function onCellKeyboardItemPressed(e: MouseEvent): void {
   selectedCell = board[wasm.exports!.get_board_index(x, y)];
   if (selectedCell.num !== 0) {
     selectedCell.incorrect = !wasm.exports!.is_correct_attempt(value, x, y);
+
+    if (wasm.exports!.is_board_solved()) {
+      lockTheBoard();
+      console.log("Solved");
+    }
   }
 
   drawBoard(board);
@@ -115,7 +132,17 @@ function onSolveButtonPressed(): void {
 
   board = getSolvedBoard();
   drawBoard(board);
+  lockTheBoard();
   console.log("Sudoku solved.");
+}
+
+function onRandomButtonPressed(): void {
+  isBoardLocked = false;
+  wasm.exports!.fill_random_board();
+
+  board = getBoard();
+  drawBoard(board);
+  console.log("Created new board.");
 }
 
 function drawBoard(board: Cell[]): void {
@@ -130,10 +157,14 @@ function drawBoard(board: Cell[]): void {
   for (let y = 0; y < sideLength; ++y) {
     for (let x = 0; x < sideLength; ++x) {
       const index = wasm.exports!.get_board_index(x, y);
-      const cell = rows[y][x];
-      cell.textContent = board[index].num.toString();
+      const cellItem = rows[y][x];
+      const cell: Cell = board[wasm.exports!.get_board_index(x, y)];
+
+      cellItem.textContent = board[index].num.toString();
+      cellItem.setAttribute("data-cell-prefilled", cell.prefilled ? "1" : "0");
+
       updateCellClasses(
-        cell,
+        cellItem,
         x,
         y,
         selectedCell.num,
@@ -157,7 +188,6 @@ function createTable(): void {
       const cell: Cell = board[wasm.exports!.get_board_index(x, y)];
       cellItem.setAttribute("data-cell-x", x.toString());
       cellItem.setAttribute("data-cell-y", y.toString());
-      cellItem.setAttribute("data-cell-prefilled", cell.prefilled ? "1" : "0");
       cellItem.addEventListener("click", onBoardCellPressed);
       cells.push(cellItem);
       row.appendChild(cellItem);
@@ -224,7 +254,7 @@ function updateCellClasses(
 
 function setupKeyboard(): void {
   keyboard
-    .querySelectorAll("span")
+    .querySelectorAll("button")
     .forEach((btn) => btn.addEventListener("click", onCellKeyboardItemPressed));
 }
 
@@ -234,10 +264,12 @@ function setupKeyboard(): void {
   setupKeyboard();
 
   wasm.exports!.fill_random_board();
+  // wasm.exports!.fill_test_board();
   wasm.exports!.solve_sudoku();
 
   board = getBoard();
   drawBoard(board);
 
   solveButton.addEventListener("click", onSolveButtonPressed);
+  randomButton.addEventListener("click", onRandomButtonPressed);
 })();

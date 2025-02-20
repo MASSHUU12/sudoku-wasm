@@ -240,7 +240,7 @@ void fill_random_board(void) {
     const uint8_t y = index / BOARD_SIDE_LENGTH;
 
     SudokuValue backup = board[index].num;
-    set_board_value(CELL_VALUE_EMPTY, x, y, 0);
+    set_board_value(CELL_VALUE_EMPTY, x, y, false);
 
     // Create a copy of the board and solve it to check for uniqueness;
     SudokuCell temp_board[BOARD_SIZE];
@@ -248,7 +248,7 @@ void fill_random_board(void) {
 
     if (count_solutions(temp_board) != 1) {
       // If the board does not have a unique solution, restore the number
-      set_board_value(backup, x, y, 0);
+      set_board_value(backup, x, y, true);
     } else {
       removed++;
     }
@@ -259,16 +259,16 @@ void fill_random_board(void) {
 
 // Test functions
 void fill_test_board(void) {
-  static const SudokuValue b[9][9] = {
-      {5, 3, 0, 0, 7, 0, 0, 0, 0}, {6, 0, 0, 1, 9, 5, 0, 0, 0},
-      {0, 9, 8, 0, 0, 0, 0, 6, 0}, {8, 0, 0, 0, 6, 0, 0, 0, 3},
-      {4, 0, 0, 8, 0, 3, 0, 0, 1}, {7, 0, 0, 0, 2, 0, 0, 0, 6},
-      {0, 6, 0, 0, 0, 0, 2, 8, 0}, {0, 0, 0, 4, 1, 9, 0, 0, 5},
-      {0, 0, 0, 0, 8, 0, 0, 7, 9},
+  static const SudokuValue b[BOARD_SIDE_LENGTH][BOARD_SIDE_LENGTH] = {
+      {5, 3, 0, 2, 7, 4, 6, 8, 9}, {6, 2, 8, 1, 9, 5, 3, 4, 7},
+      {4, 9, 7, 3, 6, 8, 1, 2, 5}, {1, 4, 2, 5, 3, 6, 7, 9, 8},
+      {3, 5, 6, 7, 8, 9, 2, 1, 4}, {7, 8, 9, 4, 1, 2, 5, 3, 6},
+      {2, 1, 4, 8, 5, 7, 9, 6, 3}, {8, 6, 5, 9, 2, 3, 4, 7, 1},
+      {9, 7, 3, 6, 4, 1, 8, 5, 2},
   };
 
-  for (SudokuValue y = 0; y < 9; ++y) {
-    for (SudokuValue x = 0; x < 9; ++x) {
+  for (SudokuValue y = 0; y < BOARD_SIDE_LENGTH; ++y) {
+    for (SudokuValue x = 0; x < BOARD_SIDE_LENGTH; ++x) {
       set_board_value(b[y][x], x, y, b[y][x] != 0);
     }
   }
@@ -286,4 +286,12 @@ SudokuCell *get_solved_board(void) { return solved_board; }
 bool is_correct_attempt(const SudokuValue value, const uint8_t x,
                         const uint8_t y) {
   return value == solved_board[get_board_index(x, y)].num;
+}
+
+bool is_board_solved() {
+  for (uint8_t i = 0; i < BOARD_SIZE; ++i) {
+    if (board[i].num != solved_board[i].num) return false;
+  }
+
+  return true;
 }

@@ -44,6 +44,7 @@ bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
 bool solve_sudoku(void);
 bool is_correct_attempt(const SudokuValue value, const uint8_t x,
                          const uint8_t y);
+bool is_board_solved();
 void fill_test_board(void);
 void fill_random_board(void);
 
