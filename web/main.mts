@@ -152,6 +152,18 @@ function onRandomButtonPressed(): void {
   console.log("Created new board.");
 }
 
+function onResetButtonPressed(): void {
+  board.forEach((c: Cell): void => {
+    if (!c.prefilled) {
+      c.num = 0;
+      c.incorrect = false;
+      wasm.exports!.set_board_value(c.num, c.x, c.y, false);
+    }
+  });
+
+  drawBoard(board);
+}
+
 function drawBoard(board: Cell[]): void {
   sideLength = sideLength || wasm.exports!.get_board_side_length();
   if (!table) {
@@ -269,13 +281,14 @@ function setupKeyboard(): void {
   wasm.exports!.setup(Date.now());
   setupKeyboard();
 
-  wasm.exports!.fill_random_board();
-  // wasm.exports!.fill_test_board();
+  // wasm.exports!.fill_random_board();
+  wasm.exports!.fill_test_board();
   wasm.exports!.solve_sudoku();
 
   board = getBoard();
   drawBoard(board);
 
+  resetButton.addEventListener("click", onResetButtonPressed);
   solveButton.addEventListener("click", onSolveButtonPressed);
   randomButton.addEventListener("click", onRandomButtonPressed);
   printButton.addEventListener("click", () => printElement(boardContainer));

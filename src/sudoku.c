@@ -284,7 +284,7 @@ void fill_random_board(void) {
 // Test functions
 void fill_test_board(void) {
   static const SudokuValue b[BOARD_SIDE_LENGTH][BOARD_SIDE_LENGTH] = {
-      {5, 3, 0, 2, 7, 4, 6, 8, 9}, {6, 2, 8, 1, 9, 5, 3, 4, 7},
+      {5, 3, 0, 2, 7, 4, 6, 8, 9}, {6, 2, 8, 1, 0, 5, 3, 4, 7},
       {4, 9, 7, 3, 6, 8, 1, 2, 5}, {1, 4, 2, 5, 3, 6, 7, 9, 8},
       {3, 5, 6, 7, 8, 9, 2, 1, 4}, {7, 8, 9, 4, 1, 2, 5, 3, 6},
       {2, 1, 4, 8, 5, 7, 9, 6, 3}, {8, 6, 5, 9, 2, 3, 4, 7, 1},
