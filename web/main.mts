@@ -1,3 +1,4 @@
+import { printElement } from "./print.mjs";
 import { Wasm } from "./wasm.mjs";
 
 interface WasmExports {
@@ -48,6 +49,12 @@ const solveButton = document.getElementById(
 ) as HTMLButtonElement;
 const randomButton = document.getElementById(
   "random-button",
+) as HTMLButtonElement;
+const printButton = document.getElementById(
+  "print-button",
+) as HTMLButtonElement;
+const resetButton = document.getElementById(
+  "reset-button",
 ) as HTMLButtonElement;
 
 let table: HTMLTableElement | null = null;
@@ -271,4 +278,5 @@ function setupKeyboard(): void {
 
   solveButton.addEventListener("click", onSolveButtonPressed);
   randomButton.addEventListener("click", onRandomButtonPressed);
+  printButton.addEventListener("click", () => printElement(boardContainer));
 })();

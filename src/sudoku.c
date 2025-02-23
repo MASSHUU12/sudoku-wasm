@@ -28,13 +28,24 @@ bool pop(SudokuCell *cell) {
 
 // Utility functions
 static void log_board(const SudokuCell *b) {
-  for (uint16_t y = 0; y < BOARD_SIDE_LENGTH; ++y) {
+  LOGF("Board %dx%d (%d cells)", BOARD_SIDE_LENGTH, BOARD_SIDE_LENGTH,
+       BOARD_SIZE);
+
+  uint8_t prefilled = 0;
+  for (uint8_t y = 0; y < BOARD_SIDE_LENGTH; ++y) {
     char buffer[BOARD_SIDE_LENGTH * 2] = {0};
-    for (uint16_t x = 0; x < BOARD_SIDE_LENGTH; ++x) {
-      mini_sprintf(buffer + x * 2, "%d ", b[y * BOARD_SIDE_LENGTH + x].num);
+    for (uint8_t x = 0; x < BOARD_SIDE_LENGTH; ++x) {
+      const uint8_t index = get_board_index(x, y);
+      const SudokuCell cell = b[index];
+
+      prefilled += cell.prefilled;
+
+      mini_sprintf(buffer + x * 2, "%d ", cell.num);
     }
     console_log(buffer, BOARD_SIDE_LENGTH * 2);
   }
+
+  LOGF("Prefilled: %d, empty: %d", prefilled, BOARD_SIZE - prefilled);
 }
 
 uint8_t get_board_index(const uint8_t x, const uint8_t y) {
