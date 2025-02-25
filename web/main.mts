@@ -30,10 +30,11 @@ class Cell {
     public num: number,
     public prefilled: boolean,
     public incorrect: boolean,
+    public hints: boolean[],
   ) {}
 
   static invalid(): Cell {
-    return new Cell(-1, -1, -1, false, false);
+    return new Cell(-1, -1, -1, false, false, []);
   }
 
   toArray(): [number, number] {
@@ -84,7 +85,16 @@ function getBoardData(getBoardFunc: Function): Cell[] {
     const num = (cell >> (8 * 2)) & 0xff;
     const prefilled = (cell >> (8 * 3)) & 0xff;
 
-    newBoard.push(new Cell(x, y, num, !!prefilled, false));
+    newBoard.push(
+      new Cell(
+        x,
+        y,
+        num,
+        !!prefilled,
+        false,
+        new Array<boolean>(9).fill(false),
+      ),
+    );
   }
 
   return newBoard;
@@ -106,6 +116,9 @@ function onBoardCellPressed(e: MouseEvent): void {
   selectedCell = board[wasm.exports!.get_board_index(x, y)];
   selectedCell.prefilled = prefilled;
   selectedCell.incorrect = incorrect;
+
+  console.log(selectedCell);
+
   drawBoard(board);
 }
 
@@ -157,6 +170,7 @@ function onResetButtonPressed(): void {
     if (!c.prefilled) {
       c.num = 0;
       c.incorrect = false;
+      c.hints = c.hints.fill(false);
       wasm.exports!.set_board_value(c.num, c.x, c.y, false);
     }
   });
@@ -178,8 +192,13 @@ function drawBoard(board: Cell[]): void {
       const index = wasm.exports!.get_board_index(x, y);
       const cellItem = rows[y][x];
       const cell: Cell = board[wasm.exports!.get_board_index(x, y)];
+      const textItem: HTMLSpanElement | null = cellItem.querySelector("span");
 
-      cellItem.textContent = board[index].num.toString();
+      if (textItem === null) {
+        throw new Error(`Span of the [${x}, ${y}] cell is unavailable.`);
+      }
+
+      textItem.textContent = board[index].num.toString();
       cellItem.setAttribute("data-cell-prefilled", cell.prefilled ? "1" : "0");
 
       updateCellClasses(
@@ -198,12 +217,24 @@ function createTable(): void {
   table = document.createElement("table");
   rows = [];
 
-  for (let y = 0; y < sideLength; y++) {
+  for (let y = 0; y < sideLength; ++y) {
     const row = document.createElement("tr");
     const cells = [];
 
-    for (let x = 0; x < sideLength; x++) {
+    for (let x = 0; x < sideLength; ++x) {
       const cellItem = document.createElement("td");
+      const textItem = document.createElement("span");
+      const innerGrid = document.createElement("div");
+      innerGrid.classList.add("inner-grid");
+
+      cellItem.append(textItem, innerGrid);
+
+      for (let i = 1; i <= 9; ++i) {
+        const hintItem = document.createElement("div");
+        hintItem.textContent = i.toString();
+        innerGrid.appendChild(hintItem);
+      }
+
       cellItem.setAttribute("data-cell-x", x.toString());
       cellItem.setAttribute("data-cell-y", y.toString());
       cellItem.addEventListener("click", onBoardCellPressed);
@@ -235,7 +266,13 @@ function updateCellClasses(
     "incorrect-cell",
   );
 
-  if (cell.textContent === "0") {
+  const textItem: HTMLSpanElement | null = cell.querySelector("span");
+
+  if (textItem === null) {
+    throw new Error(`Span of the [${x}, ${y}] cell is unavailable.`);
+  }
+
+  if (textItem.textContent === "0") {
     cell.classList.add("empty-cell");
   }
 
@@ -259,8 +296,8 @@ function updateCellClasses(
   }
 
   if (
-    selectedValue.toString() === cell.textContent &&
-    cell.textContent !== "0"
+    selectedValue.toString() === textItem.textContent &&
+    textItem.textContent !== "0"
   ) {
     cell.classList.add("highlight-num");
   }
