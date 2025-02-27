@@ -119,7 +119,7 @@ class SudokuBoard {
 
     // this.wasm.exports!.fill_random_board();
     this.wasm.exports!.fill_test_board();
-    // this.wasm.exports!.solve_sudoku();
+    this.wasm.exports!.solve_sudoku();
 
     this.board = this.getBoard();
     this.drawBoard();
@@ -170,11 +170,14 @@ class SudokuBoard {
   private onBoardCellPressed(e: MouseEvent): void {
     if (this.isBoardLocked) return;
 
-    const td = e.target as HTMLTableCellElement;
+    const td = (e.target as HTMLElement).closest("td");
+    if (!td) return;
     const x = +td.getAttribute("data-cell-x")!;
     const y = +td.getAttribute("data-cell-y")!;
     const prefilled: boolean = !!+td.getAttribute("data-cell-prefilled")!;
     const incorrect: boolean = td.classList.contains("incorrect-cell");
+
+    if (prefilled) return;
 
     this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
     this.selectedCell.prefilled = prefilled;
@@ -300,11 +303,13 @@ class SudokuBoard {
         innerGrid.classList.add("inner-grid");
         cellItem.append(textItem, innerGrid);
 
+        const hintFragment = document.createDocumentFragment();
         for (let i = 1; i <= 9; ++i) {
           const hintItem = document.createElement("div");
           hintItem.textContent = i.toString();
-          innerGrid.appendChild(hintItem);
+          hintFragment.appendChild(hintItem);
         }
+        innerGrid.appendChild(hintFragment);
 
         cellItem.setAttribute("data-cell-x", x.toString());
         cellItem.setAttribute("data-cell-y", y.toString());
