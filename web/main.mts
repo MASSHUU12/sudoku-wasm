@@ -284,23 +284,19 @@ class SudokuBoard {
         const index = this.wasm.exports!.get_board_index(x, y);
         const cellItem: HTMLTableCellElement = this.rows[y][x];
 
-        if (cellItem.getAttribute("data-cell-prefilled") !== "1") {
-          const cell: Cell =
-            this.board[this.wasm.exports!.get_board_index(x, y)];
+        const cell: Cell = this.board[this.wasm.exports!.get_board_index(x, y)];
 
-          const textItem: HTMLSpanElement | null =
-            cellItem.querySelector("span");
+        const textItem: HTMLSpanElement | null = cellItem.querySelector("span");
 
-          if (textItem === null) {
-            throw new Error(`Span of the [${x}, ${y}] cell is unavailable.`);
-          }
-
-          textItem.textContent = this.board[index].num.toString();
-          cellItem.setAttribute(
-            "data-cell-prefilled",
-            cell.prefilled ? "1" : "0",
-          );
+        if (textItem === null) {
+          throw new Error(`Span of the [${x}, ${y}] cell is unavailable.`);
         }
+
+        textItem.textContent = this.board[index].num.toString();
+        cellItem.setAttribute(
+          "data-cell-prefilled",
+          cell.prefilled ? "1" : "0",
+        );
 
         this.updateCellClasses(
           cellItem,
