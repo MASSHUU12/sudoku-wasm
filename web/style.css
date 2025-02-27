@@ -221,8 +221,13 @@ button:hover {
     place-items: center;
 }
 
-#board td[data-cell-prefilled="1"] .inner-grid {
+#board td .inner-grid div {
     opacity: 0;
+}
+
+#board td .inner-grid .note-visible {
+    opacity: 1;
+    color: var(--color-black);
 }
 
 /* Keyboard */

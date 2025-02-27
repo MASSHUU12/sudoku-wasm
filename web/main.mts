@@ -39,7 +39,7 @@ class Cell {
     public num: number,
     public prefilled: boolean,
     public incorrect: boolean,
-    public hints: boolean[],
+    public notes: boolean[],
   ) {}
 
   static invalid(): Cell {
@@ -59,12 +59,14 @@ class SudokuBoard {
   private randomButton: HTMLButtonElement;
   private printButton: HTMLButtonElement;
   private resetButton: HTMLButtonElement;
+  private notesButton: HTMLButtonElement;
   private table: HTMLTableElement | null = null;
   private rows: HTMLTableCellElement[][] = [];
   private board: Cell[] = [];
   private sideLength: number = 0;
   private selectedCell: Cell = Cell.invalid();
   private isBoardLocked = false;
+  private notesMode = false;
 
   constructor(wasmUrl: string) {
     this.wasm = new Wasm<WebAssembly.Exports & WasmExports>(wasmUrl);
@@ -81,6 +83,9 @@ class SudokuBoard {
     ) as HTMLButtonElement;
     this.resetButton = document.getElementById(
       "reset-button",
+    ) as HTMLButtonElement;
+    this.notesButton = document.getElementById(
+      "notes-button",
     ) as HTMLButtonElement;
 
     this.setupEventListeners();
@@ -111,6 +116,10 @@ class SudokuBoard {
           this.onCellKeyboardItemPressed.bind(this),
         ),
       );
+    this.notesButton.addEventListener(
+      "click",
+      this.onNotesButtonPressed.bind(this),
+    );
   }
 
   private async initialize(): Promise<void> {
@@ -192,22 +201,27 @@ class SudokuBoard {
     if (this.selectedCell.prefilled || this.isBoardLocked) return;
 
     const value: number = +(e.target as HTMLSpanElement).innerText!;
-    const [x, y] = this.selectedCell.toArray();
 
-    this.wasm.exports!.set_board_value(value, x, y, false);
-    this.board = this.getBoard();
+    if (this.notesMode) {
+      this.selectedCell.notes[value - 1] = !this.selectedCell.notes[value - 1];
+    } else {
+      const [x, y] = this.selectedCell.toArray();
 
-    this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
-    if (this.selectedCell.num !== 0) {
-      this.selectedCell.incorrect = !this.wasm.exports!.is_correct_attempt(
-        value,
-        x,
-        y,
-      );
+      this.wasm.exports!.set_board_value(value, x, y, false);
+      this.board = this.getBoard();
 
-      if (this.wasm.exports!.is_board_solved()) {
-        this.lockTheBoard();
-        console.log("Solved");
+      this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
+      if (this.selectedCell.num !== 0) {
+        this.selectedCell.incorrect = !this.wasm.exports!.is_correct_attempt(
+          value,
+          x,
+          y,
+        );
+
+        if (this.wasm.exports!.is_board_solved()) {
+          this.lockTheBoard();
+          console.log("Solved");
+        }
       }
     }
 
@@ -240,12 +254,19 @@ class SudokuBoard {
       if (!c.prefilled) {
         c.num = 0;
         c.incorrect = false;
-        c.hints = c.hints.fill(false);
+        c.notes = c.notes.fill(false);
         this.wasm.exports!.set_board_value(c.num, c.x, c.y, false);
       }
     });
 
     this.drawBoard();
+  }
+
+  private onNotesButtonPressed(e: MouseEvent): void {
+    const target = e.target as HTMLButtonElement;
+
+    this.notesMode = !this.notesMode;
+    target.innerText = `Notes: ${this.notesMode ? "ON" : "OFF"}`;
   }
 
   private drawBoard(): void {
@@ -261,19 +282,25 @@ class SudokuBoard {
     for (let y = 0; y < this.sideLength; ++y) {
       for (let x = 0; x < this.sideLength; ++x) {
         const index = this.wasm.exports!.get_board_index(x, y);
-        const cellItem = this.rows[y][x];
-        const cell: Cell = this.board[this.wasm.exports!.get_board_index(x, y)];
-        const textItem: HTMLSpanElement | null = cellItem.querySelector("span");
+        const cellItem: HTMLTableCellElement = this.rows[y][x];
 
-        if (textItem === null) {
-          throw new Error(`Span of the [${x}, ${y}] cell is unavailable.`);
+        if (cellItem.getAttribute("data-cell-prefilled") !== "1") {
+          const cell: Cell =
+            this.board[this.wasm.exports!.get_board_index(x, y)];
+
+          const textItem: HTMLSpanElement | null =
+            cellItem.querySelector("span");
+
+          if (textItem === null) {
+            throw new Error(`Span of the [${x}, ${y}] cell is unavailable.`);
+          }
+
+          textItem.textContent = this.board[index].num.toString();
+          cellItem.setAttribute(
+            "data-cell-prefilled",
+            cell.prefilled ? "1" : "0",
+          );
         }
-
-        textItem.textContent = this.board[index].num.toString();
-        cellItem.setAttribute(
-          "data-cell-prefilled",
-          cell.prefilled ? "1" : "0",
-        );
 
         this.updateCellClasses(
           cellItem,
@@ -326,14 +353,16 @@ class SudokuBoard {
   }
 
   private updateCellClasses(
-    cell: HTMLTableCellElement,
+    cellItem: HTMLTableCellElement,
     x: number,
     y: number,
     selectedValue: number,
     selectedSubgridX: number,
     selectedSubgridY: number,
   ): void {
-    cell.classList.remove(
+    const cell: Cell = this.board[this.wasm.exports!.get_board_index(x, y)];
+
+    cellItem.classList.remove(
       "highlight-row",
       "highlight-col",
       "highlight-num",
@@ -342,43 +371,60 @@ class SudokuBoard {
       "incorrect-cell",
     );
 
-    const textItem: HTMLSpanElement | null = cell.querySelector("span");
-    if (textItem === null) {
+    const innerGrid = cellItem.querySelector("div");
+    if (!innerGrid) {
+      throw new Error(`Inner grid of the [${x}, ${y}] cell is unavailable.`);
+    }
+
+    innerGrid
+      .querySelectorAll("div")
+      .forEach((noteItem: HTMLDivElement): void => {
+        const value: number = +noteItem.innerText;
+
+        if (cell.notes[value - 1]) {
+          noteItem.classList.add("note-visible");
+        } else {
+          noteItem.classList.remove("note-visible");
+        }
+      });
+
+    const textItem: HTMLSpanElement | null = cellItem.querySelector("span");
+    if (!textItem) {
       throw new Error(`Span of the [${x}, ${y}] cell is unavailable.`);
     }
 
     if (textItem.textContent === "0") {
-      cell.classList.add("empty-cell");
+      cellItem.classList.add("empty-cell");
     }
 
     if (!this.selectedCell) return;
 
     const rowSelected = this.selectedCell.x === x;
     const colSelected = this.selectedCell.y === y;
-    cell.setAttribute(
+    cellItem.setAttribute(
       "aria-selected",
       rowSelected && colSelected ? "true" : "false",
     );
 
-    if (rowSelected) cell.classList.add("highlight-row");
-    if (colSelected) cell.classList.add("highlight-col");
+    if (rowSelected) cellItem.classList.add("highlight-row");
+    if (colSelected) cellItem.classList.add("highlight-col");
 
     if (
       Math.floor(x / 3) === selectedSubgridX &&
       Math.floor(y / 3) === selectedSubgridY
     ) {
-      cell.classList.add("highlight-subgrid");
+      cellItem.classList.add("highlight-subgrid");
     }
 
     if (
       selectedValue.toString() === textItem.textContent &&
       textItem.textContent !== "0"
     ) {
-      cell.classList.add("highlight-num");
+      cellItem.classList.add("highlight-num");
     }
 
-    if (this.board[this.wasm.exports!.get_board_index(x, y)].incorrect) {
-      cell.classList.add("incorrect-cell");
+    if (cell.incorrect) {
+      cellItem.classList.add("incorrect-cell");
     }
   }
 }
