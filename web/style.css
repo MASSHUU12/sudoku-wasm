@@ -1,157 +1,177 @@
 :root {
-    --hover-color-difference: 5%;
-    --calc-hover: calc(100% - var(--hover-color-difference));
-    --transition-time: 0.3s;
+    /* Base settings */
+    --transition: 0.3s;
     --radius: 0.3rem;
 
-    --cell-size: 3rem;
-    --cell-color: hsl(0, 0%, 100%);
-    --cell-color-hover: color-mix(
-        in srgb,
-        var(--cell-color) var(--calc-hover),
-        black var(--hover-color-difference)
-    );
-    --cell-color-prefilled: color-mix(
-        in srgb,
-        var(--cell-color) var(--calc-hover),
-        black var(3%)
-    );
-    --cell-color-incorrect: hsl(3, 100%, 69%);
-    --cell-color-incorrect-hover: color-mix(
-        in srgb,
-        var(--cell-color-incorrect) var(--calc-hover),
-        black var(--hover-color-difference)
-    );
-    --cell-color-selected: hsl(210, 100%, 85.1%);
-    --cell-color-selected-hover: color-mix(
-        in srgb,
-        var(--cell-color-selected) var(--calc-hover),
-        black var(--hover-color-difference)
-    );
-    --cell-color-highlight: hsl(211.2, 100%, 95.1%);
-    --cell-color-highlight-hover: color-mix(
-        in srgb,
-        var(--cell-color-highlight) var(--calc-hover),
-        black var(--hover-color-difference)
-    );
-    --cell-border-color: hsl(0, 0%, 60%);
-    --cell-border-style: 0.1rem solid hsl(0, 0%, 20%);
+    /* Color system */
+    --color-white: hsl(0, 0%, 100%);
+    --color-black: hsl(0, 0%, 20%);
+    --color-gray-light: hsl(0, 0%, 96.08%);
+    --color-gray: hsl(0, 0%, 80%);
+    --color-gray-dark: hsl(0, 0%, 60%);
+    --color-blue: hsl(210, 100%, 85.1%);
+    --color-blue-light: hsl(211.2, 100%, 95.1%);
+    --color-red: hsl(3, 100%, 69%);
 
-    --main-background-color: hsl(0, 0%, 96.08%);
-    --board-border-color: hsl(0, 0%, 20%);
+    /* Cell properties */
+    --cell-size: min(3rem, 9vw);
+    --cell-font-size: calc(var(--cell-size) * 0.43);
+    --cell-note-font-size: calc(var(--cell-size) * 0.33);
+    --cell-bg: var(--color-white);
+    --cell-bg-prefilled: hsl(0, 0%, 97%);
+    --cell-bg-selected: var(--color-blue);
+    --cell-bg-highlight: var(--color-blue-light);
+    --cell-bg-incorrect: var(--color-red);
+    --cell-border: 1px solid var(--color-gray-dark);
+    --cell-border-thick: 0.1rem solid var(--color-black);
 
-    --keyboard-btn-size: 3rem;
-
-    --button-border-color: hsl(0, 0%, 80%);
-    --button-color: hsl(0, 0%, 100%);
-    --button-color-hover: color-mix(
-        in srgb,
-        var(--button-color) var(--calc-hover),
-        black var(--hover-color-difference)
-    );
+    /* Button properties */
+    --button-bg: var(--color-white);
+    --button-border: 1px solid var(--color-gray);
+    --keyboard-btn-size: min(3rem, 10vw);
+    --keyboard-font-size: calc(var(--keyboard-btn-size) * 0.4);
 }
 
+/* Responsive adjustments */
 @media (max-width: 600px) {
     :root {
-        --cell-size: calc(3rem * 0.8);
+        --radius: 0.25rem;
+    }
+}
+
+@media (max-width: 400px) {
+    :root {
+        --cell-border-thick: 0.08rem solid var(--color-black);
+        --cell-border: 0.05rem solid var(--color-gray-dark);
     }
 }
 
 main {
-    background-color: var(--main-background-color);
+    background-color: var(--color-gray-light);
     font-family: Arial, sans-serif;
-    width: 100svw;
-    height: 100svh;
+    width: 100%;
+    min-height: 100svh;
+    padding: 1rem;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    place-items: center;
-    gap: 1rem;
+    align-items: center;
+    gap: min(1rem, 2vh);
+    overflow-x: hidden;
 }
 
+/* Button styles */
 button {
     padding: var(--radius);
-    border: 1px solid var(--button-border-color);
+    border: var(--button-border);
     border-radius: var(--radius);
-    background-color: var(--button-color);
-    font-size: 1rem;
+    background-color: var(--button-bg);
+    font-size: min(1rem, 4vw);
     cursor: pointer;
     transition:
-        background-color var(--transition-time),
-        transform var(--transition-time);
+        background-color var(--transition),
+        transform var(--transition);
 }
 
 button:hover {
-    background-color: var(--button-color-hover);
-    transform: scale(1.1);
+    background-color: hsl(0, 0%, 95%);
+    transform: scale(1.05);
 }
 
+@media (hover: none) {
+    button:hover {
+        transform: none;
+    }
+}
+
+/* Board container */
 #board {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(var(--cell-size), 1fr));
-    border: 0.1rem solid var(--board-border-color);
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    border: var(--cell-border-thick);
     aspect-ratio: 1/1;
+    width: min(90vw, min(90vh - 150px, 500px));
+    height: auto; /* Height will be maintained by aspect-ratio */
+    margin: 0 auto;
+}
+
+/* Make the table work with grid */
+#board table,
+#board tbody,
+#board tr {
+    display: contents;
 }
 
 #board table {
     border-collapse: collapse;
+    width: 100%;
+    height: 100%;
 }
 
+/* Cell styling */
 #board td {
     position: relative;
-    width: var(--cell-size);
     aspect-ratio: 1/1;
-    border: 1px solid var(--cell-border-color);
-    background-color: var(--cell-color);
+    border: var(--cell-border);
+    background-color: var(--cell-bg);
     cursor: pointer;
     user-select: none;
-    transition: background-color var(--transition-time);
+    transition: background-color var(--transition);
+    touch-action: manipulation;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #board td:hover {
-    background-color: var(--cell-color-hover);
+    background-color: hsl(0, 0%, 95%);
 }
 
+/* Selected cell */
 #board td[aria-selected="true"] {
-    background-color: var(--cell-color-selected);
+    background-color: var(--cell-bg-selected);
     font-weight: 600;
 }
 
 #board td[aria-selected="true"]:hover {
-    background-color: var(--cell-color-selected-hover);
+    background-color: hsl(210, 100%, 80%);
 }
 
+/* Grid lines */
 #board td:nth-child(3n + 1) {
-    border-left: var(--cell-border-style);
+    border-left: var(--cell-border-thick);
 }
+
 #board tr:nth-child(3n + 1) td {
-    border-top: var(--cell-border-style);
+    border-top: var(--cell-border-thick);
 }
+
 #board td:nth-child(9n) {
-    border-right: var(--cell-border-style);
+    border-right: var(--cell-border-thick);
 }
+
 #board tr:nth-child(9n) td {
-    border-bottom: var(--cell-border-style);
+    border-bottom: var(--cell-border-thick);
 }
 
-#board
-    td:is(
-        .highlight-row,
-        .highlight-col,
-        .highlight-num,
-        .highlight-subgrid
-    ):not([aria-selected="true"]):not(.incorrect-cell) {
-    background-color: var(--cell-color-highlight);
+/* Highlighted cells */
+#board td.highlight-row:not([aria-selected="true"]):not(.incorrect-cell),
+#board td.highlight-col:not([aria-selected="true"]):not(.incorrect-cell),
+#board td.highlight-num:not([aria-selected="true"]):not(.incorrect-cell),
+#board td.highlight-subgrid:not([aria-selected="true"]):not(.incorrect-cell) {
+    background-color: var(--cell-bg-highlight);
 }
 
+#board td.highlight-row:not([aria-selected="true"]):not(.incorrect-cell):hover,
+#board td.highlight-col:not([aria-selected="true"]):not(.incorrect-cell):hover,
+#board td.highlight-num:not([aria-selected="true"]):not(.incorrect-cell):hover,
 #board
-    td:is(
-        .highlight-row,
-        .highlight-col,
-        .highlight-num,
-        .highlight-subgrid
-    ):not([aria-selected="true"]):not(.incorrect-cell):hover {
-    background-color: var(--cell-color-highlight-hover);
+    td.highlight-subgrid:not([aria-selected="true"]):not(
+        .incorrect-cell
+    ):hover {
+    background-color: hsl(211.2, 100%, 90%);
 }
 
 #board td.highlight-num:not([aria-selected="true"]) {
@@ -159,35 +179,36 @@ button:hover {
     filter: invert(100%);
 }
 
+/* Cell states */
 #board td.empty-cell {
     color: transparent;
 }
 
 #board td.incorrect-cell {
-    background-color: var(--cell-color-incorrect);
+    background-color: var(--cell-bg-incorrect);
 }
 
 #board td.incorrect-cell:hover {
-    background-color: var(--cell-color-incorrect-hover);
+    background-color: hsl(3, 100%, 64%);
 }
 
 #board td[data-cell-prefilled="1"] {
     cursor: initial;
-    background-color: var(--cell-color-prefilled);
+    background-color: var(--cell-bg-prefilled);
 }
 
-#board td:is([data-cell-prefilled="1"]):is([aria-selected="true"]) {
-    background-color: var(--cell-color-highlight);
+#board td[data-cell-prefilled="1"][aria-selected="true"] {
+    background-color: var(--cell-bg-highlight);
 }
 
+/* Inner grid */
 #board .inner-grid {
     display: grid;
-    grid-template-rows: repeat(3, 1fr);
-    grid-template-columns: repeat(3, 1fr);
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
 }
 
 #board td span {
-    font-size: 1.3rem;
+    font-size: var(--cell-font-size);
     position: absolute;
     top: 50%;
     left: 50%;
@@ -195,24 +216,73 @@ button:hover {
 }
 
 #board .inner-grid div {
-    font-size: 1rem;
+    font-size: var(--cell-note-font-size);
     display: grid;
     place-items: center;
 }
 
-#board td:is([data-cell-prefilled="1"]) .inner-grid {
+#board td[data-cell-prefilled="1"] .inner-grid {
     opacity: 0;
 }
 
+/* Keyboard */
 #keyboard {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: calc(var(--radius) * 2);
+    gap: min(0.5rem, 1.5vw);
+    width: min(100%, 500px);
+    margin: 0.5rem auto 0;
+    padding: 0.5rem;
 }
 
 #keyboard button {
     width: var(--keyboard-btn-size);
     height: var(--keyboard-btn-size);
+    font-size: var(--keyboard-font-size);
     user-select: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Prevent zooming on double-tap on mobile */
+@media (max-width: 768px) {
+    html {
+        touch-action: manipulation;
+    }
+
+    /* Add breathing room for mobile */
+    main {
+        padding: 0.5rem;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    main {
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem;
+    }
+
+    #board {
+        width: min(60vw, 80vh);
+        height: auto;
+        flex-shrink: 0;
+    }
+
+    #keyboard {
+        width: min(35vw, 300px);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: 1fr;
+        gap: 0.5rem;
+        height: auto;
+        max-height: 80vh;
+        margin: 0;
+    }
 }
