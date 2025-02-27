@@ -49,6 +49,10 @@ class Cell {
   toArray(): [number, number] {
     return [this.x, this.y];
   }
+
+  resetNotes(): void {
+    this.notes.fill(false);
+  }
 }
 
 class SudokuBoard {
@@ -186,13 +190,11 @@ class SudokuBoard {
     const prefilled: boolean = !!+td.getAttribute("data-cell-prefilled")!;
     const incorrect: boolean = td.classList.contains("incorrect-cell");
 
-    if (prefilled) return;
+    // if (prefilled) return;
 
     this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
     this.selectedCell.prefilled = prefilled;
     this.selectedCell.incorrect = incorrect;
-
-    console.log(this.selectedCell);
 
     this.drawBoard();
   }
@@ -208,15 +210,20 @@ class SudokuBoard {
       const [x, y] = this.selectedCell.toArray();
 
       this.wasm.exports!.set_board_value(value, x, y, false);
-      this.board = this.getBoard();
 
       this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
+      this.selectedCell.num = value;
+
       if (this.selectedCell.num !== 0) {
         this.selectedCell.incorrect = !this.wasm.exports!.is_correct_attempt(
           value,
           x,
           y,
         );
+
+        if (!this.selectedCell.incorrect) {
+          this.selectedCell.resetNotes();
+        }
 
         if (this.wasm.exports!.is_board_solved()) {
           this.lockTheBoard();

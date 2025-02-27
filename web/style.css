@@ -201,18 +201,19 @@ button:hover {
     background-color: var(--cell-bg-highlight);
 }
 
-/* Inner grid */
-#board .inner-grid {
-    display: grid;
-    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-}
-
 #board td span {
     font-size: var(--cell-font-size);
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+/* Inner grid */
+#board .inner-grid {
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    width: 100%;
 }
 
 #board .inner-grid div {
