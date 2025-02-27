@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "bun tsc",
+    "serve": "python3 -m http.server 8000 --bind 0.0.0.0 -d ./web",
     "watch": "bun tsc --watch"
   },
   "devDependencies": {
