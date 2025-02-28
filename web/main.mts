@@ -308,6 +308,10 @@ class SudokuBoard {
       this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
       this.selectedCell.num = value;
 
+      if (this.selectedCell.num === 0) {
+        this.selectedCell.incorrect = false;
+      }
+
       if (this.selectedCell.num !== 0) {
         this.selectedCell.incorrect = !this.wasm.exports!.is_correct_attempt(
           value,
