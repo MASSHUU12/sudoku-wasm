@@ -299,7 +299,10 @@ class SudokuBoard {
     if (this.selectedCell.prefilled || this.isBoardLocked) return;
 
     if (this.notesMode) {
-      this.selectedCell.notes[value - 1] = !this.selectedCell.notes[value - 1];
+      if (this.selectedCell.num === 0) {
+        this.selectedCell.notes[value - 1] =
+          !this.selectedCell.notes[value - 1];
+      }
     } else {
       const [x, y] = this.selectedCell.toArray();
 
@@ -318,6 +321,8 @@ class SudokuBoard {
           x,
           y,
         );
+
+        this.selectedCell.resetNotes();
 
         if (!this.selectedCell.incorrect) {
           this.selectedCell.resetNotes();
