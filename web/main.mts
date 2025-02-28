@@ -124,6 +124,7 @@ class SudokuBoard {
       "click",
       this.onNotesButtonPressed.bind(this),
     );
+    addEventListener("keydown", this.onKeyPressed.bind(this));
   }
 
   private async initialize(): Promise<void> {
@@ -200,39 +201,9 @@ class SudokuBoard {
   }
 
   private onCellKeyboardItemPressed(e: MouseEvent): void {
-    if (this.selectedCell.prefilled || this.isBoardLocked) return;
-
     const value: number = +(e.target as HTMLSpanElement).innerText!;
 
-    if (this.notesMode) {
-      this.selectedCell.notes[value - 1] = !this.selectedCell.notes[value - 1];
-    } else {
-      const [x, y] = this.selectedCell.toArray();
-
-      this.wasm.exports!.set_board_value(value, x, y, false);
-
-      this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
-      this.selectedCell.num = value;
-
-      if (this.selectedCell.num !== 0) {
-        this.selectedCell.incorrect = !this.wasm.exports!.is_correct_attempt(
-          value,
-          x,
-          y,
-        );
-
-        if (!this.selectedCell.incorrect) {
-          this.selectedCell.resetNotes();
-        }
-
-        if (this.wasm.exports!.is_board_solved()) {
-          this.lockTheBoard();
-          console.log("Solved");
-        }
-      }
-    }
-
-    this.drawBoard();
+    this.handleKeyboard(value);
   }
 
   private onSolveButtonPressed(): void {
@@ -315,6 +286,47 @@ class SudokuBoard {
         );
       }
     }
+  }
+
+  private onKeyPressed(e: KeyboardEvent): void {
+    // '0' -> 48, '9' -> 57
+    if (e.key >= "0" && e.key <= "9") {
+      this.handleKeyboard(+e.key);
+    }
+  }
+
+  private handleKeyboard(value: number): void {
+    if (this.selectedCell.prefilled || this.isBoardLocked) return;
+
+    if (this.notesMode) {
+      this.selectedCell.notes[value - 1] = !this.selectedCell.notes[value - 1];
+    } else {
+      const [x, y] = this.selectedCell.toArray();
+
+      this.wasm.exports!.set_board_value(value, x, y, false);
+
+      this.selectedCell = this.board[this.wasm.exports!.get_board_index(x, y)];
+      this.selectedCell.num = value;
+
+      if (this.selectedCell.num !== 0) {
+        this.selectedCell.incorrect = !this.wasm.exports!.is_correct_attempt(
+          value,
+          x,
+          y,
+        );
+
+        if (!this.selectedCell.incorrect) {
+          this.selectedCell.resetNotes();
+        }
+
+        if (this.wasm.exports!.is_board_solved()) {
+          this.lockTheBoard();
+          console.log("Solved");
+        }
+      }
+    }
+
+    this.drawBoard();
   }
 
   private createTable(): void {
