@@ -32,7 +32,7 @@ export class WasmInterface {
     getBoardFunc: Function,
     cellElements?: HTMLTableCellElement[][],
   ): Cell[] {
-    const cells = new Uint32Array(
+    const cells = new BigUint64Array(
       this.wasm.memory!.buffer,
       getBoardFunc(),
       this.wasm.exports!.get_board_size(),
@@ -41,13 +41,13 @@ export class WasmInterface {
     const newBoard: Cell[] = [];
 
     for (let cell of cells) {
-      const x = (cell >> (8 * 0)) & 0xff;
-      const y = (cell >> (8 * 1)) & 0xff;
-      const num = (cell >> (8 * 2)) & 0xff;
-      const prefilled = (cell >> (8 * 3)) & 0xff;
-
+      const x = Number((cell >> BigInt(8 * 0)) & BigInt(0xff));
+      const y = Number((cell >> BigInt(8 * 1)) & BigInt(0xff));
+      const num = Number((cell >> BigInt(8 * 2)) & BigInt(0xff));
+      const prefilled = Number((cell >> BigInt(8 * 3)) & BigInt(0xff)) !== 0;
       const cellElement = cellElements ? cellElements[y]?.[x] : null;
-      newBoard.push(new Cell(x, y, num, !!prefilled, cellElement));
+
+      newBoard.push(new Cell(x, y, num, prefilled, cellElement));
     }
 
     return newBoard;
@@ -92,5 +92,21 @@ export class WasmInterface {
 
   solveSudoku(): boolean {
     return this.wasm.exports!.solve_sudoku();
+  }
+
+  getCellNote(note: number, x: number, y: number): boolean {
+    return this.wasm.exports!.get_cell_note(note, x, y);
+  }
+
+  setCellNote(on: boolean, note: number, x: number, y: number): number {
+    return this.wasm.exports!.set_cell_note(on, note, x, y);
+  }
+
+  toggleCellNote(note: number, x: number, y: number): number {
+    return this.wasm.exports!.toggle_cell_note(note, x, y);
+  }
+
+  resetCellNotes(x: number, y: number): boolean {
+    return this.wasm.exports!.reset_cell_notes(x, y);
   }
 }

@@ -1,5 +1,6 @@
 import { Cell } from "./Cell.mjs";
 import { printElement } from "./print.mjs";
+import type { WasmInterface } from "./WasmInterface.mjs";
 
 export class SudokuUI {
   private boardContainer: HTMLDivElement;
@@ -11,6 +12,7 @@ export class SudokuUI {
   private notesButton: HTMLButtonElement;
   private table: HTMLTableElement | null = null;
   private rows: HTMLTableCellElement[][] = [];
+  private wasmInterface: WasmInterface | null = null;
 
   constructor() {
     this.boardContainer = document.getElementById("board") as HTMLDivElement;
@@ -30,6 +32,10 @@ export class SudokuUI {
     this.notesButton = document.getElementById(
       "notes-button",
     ) as HTMLButtonElement;
+  }
+
+  setWasmInterface(wasmInterface: WasmInterface): void {
+    this.wasmInterface = wasmInterface;
   }
 
   createTable(sideLength: number): HTMLTableCellElement[][] {
@@ -71,7 +77,7 @@ export class SudokuUI {
   }
 
   updateCellDisplay(cell: Cell, selectedCell: Cell | null = null): void {
-    if (!cell.item) return;
+    if (!cell.item || !this.wasmInterface) return;
 
     cell.item.classList.remove(
       "highlight-row",
@@ -91,7 +97,10 @@ export class SudokuUI {
       .querySelectorAll("div")
       .forEach((noteItem: HTMLDivElement): void => {
         const value: number = +noteItem.innerText;
-        noteItem.classList.toggle("note-visible", cell.notes[value - 1]);
+        noteItem.classList.toggle(
+          "note-visible",
+          this.wasmInterface!.getCellNote(value - 1, ...cell.toArray()),
+        );
       });
 
     if (cell.textItem.textContent === "0") {

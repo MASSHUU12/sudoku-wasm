@@ -12,14 +12,14 @@ SudokuCell stack[STACK_SIZE];
 int32_t stack_top = -1;
 
 // Stack operations
-bool push(SudokuCell cell) {
+static bool push(SudokuCell cell) {
   if (stack_top >= STACK_SIZE - 1)
     return false;
   stack[++stack_top] = cell;
   return true;
 }
 
-bool pop(SudokuCell *cell) {
+static bool pop(SudokuCell *cell) {
   if (stack_top < 0)
     return false;
   *cell = stack[stack_top--];
@@ -48,6 +48,10 @@ static void log_board(const SudokuCell *b) {
   LOGF("Prefilled: %d, empty: %d", prefilled, BOARD_SIZE - prefilled);
 }
 
+static bool is_in_range(const uint8_t x, const uint8_t y) {
+  return !(x >= BOARD_SIDE_LENGTH || y >= BOARD_SIDE_LENGTH);
+}
+
 uint8_t get_board_index(const uint8_t x, const uint8_t y) {
   return y * BOARD_SIDE_LENGTH + x;
 }
@@ -58,7 +62,7 @@ SudokuValue get_board_value(const uint8_t x, const uint8_t y) {
 
 bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
                      bool prefilled) {
-  if (x >= BOARD_SIDE_LENGTH || y >= BOARD_SIDE_LENGTH) {
+  if (!is_in_range(x, y)) {
     return false;
   }
 
@@ -67,6 +71,8 @@ bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
   cell->y = y;
   cell->num = value;
   cell->prefilled = prefilled;
+  reset_cell_notes(x, y);
+
   return true;
 }
 
@@ -107,12 +113,13 @@ static bool find_empty_cell(const SudokuCell *board, uint8_t *x, uint8_t *y) {
   return false;
 }
 
-static void copy_board_with_prefilled(SudokuCell *dest, const SudokuCell *src) {
+static void copy_board(SudokuCell *dest, const SudokuCell *src) {
   for (uint8_t i = 0; i < BOARD_SIZE; ++i) {
     dest[i].x = src[i].x;
     dest[i].y = src[i].y;
     dest[i].num = src[i].num;
     dest[i].prefilled = src[i].prefilled;
+    dest[i].notes = src[i].notes;
   }
 }
 
@@ -120,14 +127,14 @@ static void copy_board_with_prefilled(SudokuCell *dest, const SudokuCell *src) {
 bool solve_sudoku(void) {
   stack_top = -1;
 
-  copy_board_with_prefilled(solved_board, board);
+  copy_board(solved_board, board);
 
   uint8_t x = 0, y = 0;
   if (!find_empty_cell(solved_board, &x, &y)) {
     return true;
   }
 
-  if (!push((SudokuCell){x, y, CELL_VALUE_MIN, 0})) {
+  if (!push(SUDOKU_CELL(x, y, CELL_VALUE_MIN, 0))) {
     return false;
   }
 
@@ -158,7 +165,7 @@ bool solve_sudoku(void) {
           return true;
         }
 
-        if (!push((SudokuCell){x, y, CELL_VALUE_MIN, 0})) {
+        if (!push(SUDOKU_CELL(x, y, CELL_VALUE_MIN, 0))) {
           return false;
         }
 
@@ -199,7 +206,7 @@ static bool generate_solved_board(void) {
 
   for (uint8_t y = 0; y < BOARD_SIDE_LENGTH; ++y) {
     for (uint8_t x = 0; x < BOARD_SIDE_LENGTH; ++x) {
-      set_board_value(CELL_VALUE_EMPTY, x, y, 0);
+      set_board_value(CELL_VALUE_EMPTY, x, y, false);
     }
   }
 
@@ -320,4 +327,67 @@ bool is_board_solved() {
   }
 
   return true;
+}
+
+// Notes
+bool toggle_cell_note(const uint16_t note, const uint8_t x, const uint8_t y) {
+  if (!is_in_range(x, y)) {
+    return false;
+  }
+
+  SudokuCell *cell = &board[get_board_index(x, y)];
+
+  const uint16_t note_mask = (1 << note);
+
+  cell->notes ^= note_mask;
+
+  return true;
+}
+
+bool set_cell_note(const bool on, const uint16_t note, const uint8_t x,
+                   const uint8_t y) {
+  if (!is_in_range(x, y)) {
+    return false;
+  }
+
+  SudokuCell *cell = &board[get_board_index(x, y)];
+
+  const uint16_t note_mask = (1 << note);
+
+  if (on) {
+    cell->notes |= note_mask;
+  } else {
+    cell->notes &= ~note_mask;
+  }
+
+  return true;
+}
+
+int16_t get_cell_notes(const uint8_t x, const uint8_t y) {
+  return !is_in_range(x, y) ? (&board[get_board_index(x, y)])->notes : -1;
+}
+
+bool get_cell_note(const uint16_t note, const uint8_t x, const uint8_t y) {
+  if (!is_in_range(x, y)) {
+    return false;
+  }
+
+  SudokuCell *cell = &board[get_board_index(x, y)];
+
+  return ((1 << note) & cell->notes) != 0;
+}
+
+bool set_cell_notes(const uint16_t notes, const uint8_t x, const uint8_t y) {
+  if (!is_in_range(x, y)) {
+    return false;
+  }
+
+  SudokuCell *cell = &board[get_board_index(x, y)];
+  cell->notes = notes;
+
+  return true;
+}
+
+bool reset_cell_notes(const uint8_t x, const uint8_t y) {
+  return set_cell_notes(0, x, y);
 }

@@ -18,6 +18,13 @@ export interface WasmExports {
   fill_random_board: () => void;
   is_correct_attempt: (v: number, x: number, y: number) => boolean;
   is_board_solved: () => boolean;
+
+  get_cell_notes: (x: number, y: number) => number;
+  get_cell_note: (note: number, x: number, y: number) => boolean;
+  set_cell_notes: (notes: number, x: number, y: number) => boolean;
+  set_cell_note: (on: boolean, note: number, x: number, y: number) => number;
+  reset_cell_notes: (x: number, y: number) => boolean;
+  toggle_cell_note: (note: number, x: number, y: number) => number;
 }
 
 export enum GameState {

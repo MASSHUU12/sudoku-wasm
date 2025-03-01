@@ -1,6 +1,5 @@
 export class Cell {
   public incorrect: boolean = false;
-  public notes: boolean[] = new Array<boolean>(9).fill(false);
   public readonly textItem: HTMLSpanElement | null = null;
   public readonly innerGrid: HTMLDivElement | null = null;
 
@@ -29,9 +28,5 @@ export class Cell {
 
   subgrid(): [number, number] {
     return [Math.floor(this.x / 3), Math.floor(this.y / 3)];
-  }
-
-  resetNotes(): void {
-    this.notes.fill(false);
   }
 }

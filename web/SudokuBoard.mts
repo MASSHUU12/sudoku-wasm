@@ -4,16 +4,17 @@ import { SudokuUI } from "./SudokuUI.mjs";
 import { GameState } from "./types.mjs";
 
 export class SudokuBoard {
-  private wasmInterface: WasmInterface;
+  public wasmInterface: WasmInterface;
   private ui: SudokuUI;
   private board: Cell[] = [];
   private selectedCell: Cell = Cell.invalid();
   private gameState: GameState = GameState.INITIALIZING;
   private notesMode = false;
 
-  constructor(wasmUrl: string) {
+  constructor(wasmUrl: string, ui: SudokuUI) {
     this.wasmInterface = new WasmInterface(wasmUrl);
-    this.ui = new SudokuUI();
+    this.ui = ui;
+    this.ui.setWasmInterface(this.wasmInterface);
   }
 
   async initialize(): Promise<void> {
@@ -62,7 +63,10 @@ export class SudokuBoard {
 
   private handleNotesInput(value: number): void {
     if (this.selectedCell.num === 0 && value > 0 && value <= 9) {
-      this.selectedCell.notes[value - 1] = !this.selectedCell.notes[value - 1];
+      this.wasmInterface.toggleCellNote(
+        value - 1,
+        ...this.selectedCell.toArray(),
+      );
     }
   }
 
@@ -81,7 +85,7 @@ export class SudokuBoard {
         x,
         y,
       );
-      this.selectedCell.resetNotes();
+      this.wasmInterface.resetCellNotes(...this.selectedCell.toArray());
 
       // Check if the board is solved
       if (this.wasmInterface.isBoardSolved()) {
@@ -120,7 +124,7 @@ export class SudokuBoard {
       if (!cell.prefilled) {
         cell.num = 0;
         cell.incorrect = false;
-        cell.resetNotes();
+        this.wasmInterface.resetCellNotes(...cell.toArray());
         this.wasmInterface.setBoardValue(cell.num, cell.x, cell.y, false);
       }
     });

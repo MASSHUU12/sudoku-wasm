@@ -17,11 +17,15 @@
 typedef uint8_t SudokuValue;
 
 typedef struct {
-  uint8_t x;
-  uint8_t y;
-  SudokuValue num;
-  bool prefilled;
+  uint8_t x;          // 1 byte
+  uint8_t y;          // 1 byte
+  SudokuValue num;    // 1 byte
+  bool prefilled;     // 1 byte
+  uint16_t notes;     // 2 bytes
+  uint16_t alignment; // 2 bytes
 } SudokuCell;
+
+#define SUDOKU_CELL(x, y, num, pref) (SudokuCell){(x), (y), (num), (pref), 0, 0}
 
 extern SudokuCell board[BOARD_SIZE];
 extern SudokuCell solved_board[BOARD_SIZE];
@@ -39,14 +43,25 @@ uint8_t get_board_size(void);
 uint8_t get_board_side_length(void);
 uint8_t get_board_index(const uint8_t x, const uint8_t y);
 SudokuValue get_board_value(const uint8_t x, const uint8_t y);
+
 bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
-                      bool prefilled);
+                     bool prefilled);
 bool solve_sudoku(void);
+
 bool is_correct_attempt(const SudokuValue value, const uint8_t x,
-                         const uint8_t y);
+                        const uint8_t y);
 bool is_board_solved();
+
 void fill_test_board(void);
 void fill_random_board(void);
+
+bool set_cell_note(const bool on, const uint16_t note, const uint8_t x,
+                   const uint8_t y);
+bool toggle_cell_note(const uint16_t note, const uint8_t x, const uint8_t y);
+bool reset_cell_notes(const uint8_t x, const uint8_t y);
+int16_t get_cell_notes(const uint8_t x, const uint8_t y);
+bool get_cell_note(const uint16_t note, const uint8_t x, const uint8_t y);
+bool set_cell_notes(const uint16_t notes, const uint8_t x, const uint8_t y);
 
 #ifdef __cplusplus
 }

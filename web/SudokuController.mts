@@ -6,8 +6,8 @@ export class SudokuController {
   private ui: SudokuUI;
 
   constructor(wasmUrl: string) {
-    this.board = new SudokuBoard(wasmUrl);
     this.ui = new SudokuUI();
+    this.board = new SudokuBoard(wasmUrl, this.ui);
     this.setupEventListeners();
   }
 
@@ -35,12 +35,6 @@ export class SudokuController {
       });
     });
 
-    this.ui.cellElements.forEach((row, y) => {
-      row.forEach((cell, x) => {
-        cell.addEventListener("click", () => this.board.selectCell(x, y));
-      });
-    });
-
     addEventListener("keydown", (e) => {
       if (e.key >= "0" && e.key <= "9") {
         this.board.handleInput(+e.key);
@@ -50,5 +44,11 @@ export class SudokuController {
 
   async initialize(): Promise<void> {
     await this.board.initialize();
+
+    this.ui.cellElements.forEach((row, y) => {
+      row.forEach((cell, x) => {
+        cell.addEventListener("click", () => this.board.selectCell(x, y));
+      });
+    });
   }
 }
