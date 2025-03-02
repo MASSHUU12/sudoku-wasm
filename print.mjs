@@ -1,16 +1,13 @@
-export function printElement(e: HTMLElement): void {
-  printString(e.innerHTML);
+export function printElement(e) {
+    printString(e.innerHTML);
 }
-
-export function printString(s: string): void {
-  const w: WindowProxy | null = window.open("", "", "height=600,width=800");
-
-  if (w === null) {
-    console.error("Print window was unable to open.");
-    return;
-  }
-
-  w.document.write(`
+export function printString(s) {
+    const w = window.open("", "", "height=600,width=800");
+    if (w === null) {
+        console.error("Print window was unable to open.");
+        return;
+    }
+    w.document.write(`
     <!doctype html>
     <html lang="en">
       <head>
@@ -34,9 +31,10 @@ export function printString(s: string): void {
       </body>
     </html>
   `);
-  w.document.close();
-  w.onload = function (): void {
-    w.print();
-    w.close();
-  };
+    w.document.close();
+    w.onload = function () {
+        w.print();
+        w.close();
+    };
 }
+//# sourceMappingURL=print.mjs.map
