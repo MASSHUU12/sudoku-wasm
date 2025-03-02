@@ -14,6 +14,7 @@ export interface WasmExports {
     y: number,
     prefilled: boolean,
   ) => boolean;
+  reset_board: () => void;
   fill_test_board: () => void;
   fill_random_board: () => void;
   is_correct_attempt: (v: number, x: number, y: number) => boolean;

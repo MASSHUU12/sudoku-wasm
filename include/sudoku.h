@@ -52,6 +52,7 @@ bool is_correct_attempt(const SudokuValue value, const uint8_t x,
                         const uint8_t y);
 bool is_board_solved();
 
+void reset_board(void);
 void fill_test_board(void);
 void fill_random_board(void);
 

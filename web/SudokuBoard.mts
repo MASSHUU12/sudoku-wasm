@@ -120,16 +120,15 @@ export class SudokuBoard {
   }
 
   resetBoard(): void {
-    this.board.forEach((cell: Cell): void => {
-      if (!cell.prefilled) {
-        cell.num = 0;
-        cell.incorrect = false;
-        this.wasmInterface.resetCellNotes(...cell.toArray());
-        this.wasmInterface.setBoardValue(cell.num, cell.x, cell.y, false);
-      }
-    });
+    this.wasmInterface.resetBoard();
 
-    this.ui.drawBoard(this.board, this.selectedCell);
+    const newBoard = this.wasmInterface.getBoard();
+    for (let i = 0; i < this.board.length; ++i) {
+      const { x, y, num, prefilled } = newBoard[i];
+      this.board[i] = new Cell(x, y, num, prefilled, this.board[i].item);
+    }
+
+    this.ui.drawBoard(this.board, Cell.invalid());
   }
 
   toggleNotesMode(): void {

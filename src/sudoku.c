@@ -247,6 +247,17 @@ static uint8_t count_solutions(SudokuCell *board) {
   return count;
 }
 
+void reset_board(void) {
+  for (int i = 0; i < BOARD_SIZE; ++i) {
+    SudokuCell *cell = &board[i];
+
+    if (cell->prefilled) continue;
+
+    cell->num = 0;
+    cell->notes = 0;
+  }
+}
+
 void fill_random_board(void) {
   if (!generate_solved_board()) {
     LOG("Failed to generate a solved board");

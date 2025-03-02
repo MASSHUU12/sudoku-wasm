@@ -82,6 +82,10 @@ export class WasmInterface {
     return this.wasm.exports!.get_board_index(x, y);
   }
 
+  resetBoard(): void {
+    this.wasm.exports!.reset_board();
+  }
+
   fillRandomBoard(): void {
     this.wasm.exports!.fill_random_board();
   }
