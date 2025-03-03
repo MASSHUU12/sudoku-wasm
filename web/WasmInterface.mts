@@ -113,4 +113,8 @@ export class WasmInterface {
   resetCellNotes(x: number, y: number): boolean {
     return this.wasm.exports!.reset_cell_notes(x, y);
   }
+
+  cleanupInvalidNotes(x: number, y: number): void {
+    this.wasm.exports!.cleanup_invalid_notes(x, y);
+  }
 }

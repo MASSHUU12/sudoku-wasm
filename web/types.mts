@@ -26,6 +26,7 @@ export interface WasmExports {
   set_cell_note: (on: boolean, note: number, x: number, y: number) => number;
   reset_cell_notes: (x: number, y: number) => boolean;
   toggle_cell_note: (note: number, x: number, y: number) => number;
+  cleanup_invalid_notes: (x: number, y: number) => void;
 }
 
 export enum GameState {

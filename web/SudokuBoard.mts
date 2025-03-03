@@ -76,6 +76,7 @@ export class SudokuBoard {
     // Update cell state
     this.selectedCell = this.board[this.wasmInterface.getBoardIndex(x, y)];
     this.selectedCell.num = value;
+    this.wasmInterface.cleanupInvalidNotes(x, y);
 
     if (value === 0) {
       this.selectedCell.incorrect = false;

@@ -251,7 +251,8 @@ void reset_board(void) {
   for (int i = 0; i < BOARD_SIZE; ++i) {
     SudokuCell *cell = &board[i];
 
-    if (cell->prefilled) continue;
+    if (cell->prefilled)
+      continue;
 
     cell->num = 0;
     cell->notes = 0;
@@ -401,4 +402,53 @@ bool set_cell_notes(const uint16_t notes, const uint8_t x, const uint8_t y) {
 
 bool reset_cell_notes(const uint8_t x, const uint8_t y) {
   return set_cell_notes(0, x, y);
+}
+
+void cleanup_invalid_notes(const uint8_t x, const uint8_t y) {
+  const SudokuCell cell = board[get_board_index(x, y)];
+
+  if (cell.num == CELL_VALUE_EMPTY || !is_correct_attempt(cell.num, x, y))
+    return;
+
+  // Notes are 0-indexed (note 0 corresponds to value 1)
+  const uint8_t note_index = cell.num - 1;
+
+  // Update row notes
+  for (uint8_t i = 0; i < BOARD_SIDE_LENGTH; ++i) {
+    if (i == x)
+      continue;
+
+    if (get_cell_note(note_index, i, y)) {
+      set_cell_note(false, note_index, i, y);
+    }
+  }
+
+  // Update column notes
+  for (uint8_t i = 0; i < BOARD_SIDE_LENGTH; ++i) {
+    if (i == y)
+      continue;
+
+    if (get_cell_note(note_index, x, i)) {
+      set_cell_note(false, note_index, x, i);
+    }
+  }
+
+  // Update box/subgrid notes
+  const uint8_t box_x = (x / BOX_SIZE) * BOX_SIZE;
+  const uint8_t box_y = (y / BOX_SIZE) * BOX_SIZE;
+
+  for (uint8_t i = 0; i < BOX_SIZE; ++i) {
+    for (uint8_t j = 0; j < BOX_SIZE; ++j) {
+      const uint8_t current_x = box_x + j;
+      const uint8_t current_y = box_y + i;
+
+      // Skip the current cell and cells already handled by row/column logic
+      if (current_x == x || current_y == y)
+        continue;
+
+      if (get_cell_note(note_index, current_x, current_y)) {
+        set_cell_note(false, note_index, current_x, current_y);
+      }
+    }
+  }
 }

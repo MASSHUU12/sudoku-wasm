@@ -23,7 +23,7 @@ typedef struct {
   bool prefilled;     // 1 byte
   uint16_t notes;     // 2 bytes
   uint16_t alignment; // 2 bytes
-} SudokuCell;
+} SudokuCell; // TODO: add 'locked' field to lock the cell when valid number was passed
 
 #define SUDOKU_CELL(x, y, num, pref) (SudokuCell){(x), (y), (num), (pref), 0, 0}
 
@@ -63,6 +63,7 @@ bool reset_cell_notes(const uint8_t x, const uint8_t y);
 int16_t get_cell_notes(const uint8_t x, const uint8_t y);
 bool get_cell_note(const uint16_t note, const uint8_t x, const uint8_t y);
 bool set_cell_notes(const uint16_t notes, const uint8_t x, const uint8_t y);
+void cleanup_invalid_notes(const uint8_t x, const uint8_t y);
 
 #ifdef __cplusplus
 }
