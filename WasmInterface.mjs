@@ -75,5 +75,8 @@ export class WasmInterface {
     resetCellNotes(x, y) {
         return this.wasm.exports.reset_cell_notes(x, y);
     }
+    cleanupInvalidNotes(x, y) {
+        this.wasm.exports.cleanup_invalid_notes(x, y);
+    }
 }
 //# sourceMappingURL=WasmInterface.mjs.map
