@@ -17,15 +17,17 @@
 typedef uint8_t SudokuValue;
 
 typedef struct {
-  uint8_t x;          // 1 byte
-  uint8_t y;          // 1 byte
-  SudokuValue num;    // 1 byte
-  bool prefilled;     // 1 byte
-  uint16_t notes;     // 2 bytes
-  uint16_t alignment; // 2 bytes
-} SudokuCell; // TODO: add 'locked' field to lock the cell when valid number was passed
+  uint8_t x;         // 1 byte
+  uint8_t y;         // 1 byte
+  SudokuValue num;   // 1 byte
+  bool prefilled;    // 1 byte
+  uint16_t notes;    // 2 bytes
+  bool locked;       // 1 byte
+  uint8_t alignment; // 1 byte
+} SudokuCell;
 
-#define SUDOKU_CELL(x, y, num, pref) (SudokuCell){(x), (y), (num), (pref), 0, 0}
+#define SUDOKU_CELL(x, y, num, pref)                                           \
+  (SudokuCell){(x), (y), (num), (pref), 0, 0, 0}
 
 extern SudokuCell board[BOARD_SIZE];
 extern SudokuCell solved_board[BOARD_SIZE];

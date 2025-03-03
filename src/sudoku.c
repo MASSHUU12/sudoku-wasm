@@ -67,13 +67,28 @@ bool set_board_value(const SudokuValue value, const uint8_t x, const uint8_t y,
   }
 
   SudokuCell *cell = &board[get_board_index(x, y)];
+  if (cell->locked) {
+    return false;
+  }
+
   cell->x = x;
   cell->y = y;
   cell->num = value;
   cell->prefilled = prefilled;
+  cell->locked = is_correct_attempt(value, x, y);
   reset_cell_notes(x, y);
 
   return true;
+}
+
+static void force_set_value(const SudokuValue value, const uint8_t x,
+                            const uint8_t y, bool prefilled) {
+  SudokuCell *cell = &board[get_board_index(x, y)];
+  cell->x = x;
+  cell->y = y;
+  cell->num = value;
+  cell->prefilled = prefilled;
+  cell->locked = false;
 }
 
 static bool is_valid_number(const SudokuCell *board, const uint8_t num,
@@ -120,6 +135,7 @@ static void copy_board(SudokuCell *dest, const SudokuCell *src) {
     dest[i].num = src[i].num;
     dest[i].prefilled = src[i].prefilled;
     dest[i].notes = src[i].notes;
+    dest[i].locked = src[i].locked;
   }
 }
 
@@ -206,7 +222,7 @@ static bool generate_solved_board(void) {
 
   for (uint8_t y = 0; y < BOARD_SIDE_LENGTH; ++y) {
     for (uint8_t x = 0; x < BOARD_SIDE_LENGTH; ++x) {
-      set_board_value(CELL_VALUE_EMPTY, x, y, false);
+      force_set_value(CELL_VALUE_EMPTY, x, y, false);
     }
   }
 
@@ -256,6 +272,7 @@ void reset_board(void) {
 
     cell->num = 0;
     cell->notes = 0;
+    cell->locked = false;
   }
 }
 
@@ -283,7 +300,7 @@ void fill_random_board(void) {
     const uint8_t y = index / BOARD_SIDE_LENGTH;
 
     SudokuValue backup = board[index].num;
-    set_board_value(CELL_VALUE_EMPTY, x, y, false);
+    force_set_value(CELL_VALUE_EMPTY, x, y, false);
 
     // Create a copy of the board and solve it to check for uniqueness;
     SudokuCell temp_board[BOARD_SIZE];
@@ -291,7 +308,7 @@ void fill_random_board(void) {
 
     if (count_solutions(temp_board) != 1) {
       // If the board does not have a unique solution, restore the number
-      set_board_value(backup, x, y, true);
+      force_set_value(backup, x, y, true);
     } else {
       removed++;
     }

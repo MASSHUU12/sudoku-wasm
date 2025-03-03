@@ -71,7 +71,9 @@ export class SudokuBoard {
   }
 
   private handleNumberInput(value: number, x: number, y: number): void {
-    this.wasmInterface.setBoardValue(value, x, y, false);
+    if (!this.wasmInterface.setBoardValue(value, x, y, false)) {
+      return;
+    }
 
     // Update cell state
     this.selectedCell = this.board[this.wasmInterface.getBoardIndex(x, y)];
