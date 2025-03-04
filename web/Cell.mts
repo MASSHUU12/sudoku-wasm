@@ -10,7 +10,7 @@ export class Cell {
     public readonly y: number,
     public num: number,
     public prefilled: boolean,
-    public readonly item: HTMLTableCellElement | null,
+    public readonly item: HTMLDivElement | null,
   ) {
     if (this.item) {
       this.textItem = this.item.querySelector("span");

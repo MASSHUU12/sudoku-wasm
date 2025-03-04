@@ -10,8 +10,7 @@ export class SudokuUI {
   private printButton: HTMLButtonElement;
   private resetButton: HTMLButtonElement;
   private notesButton: HTMLButtonElement;
-  private table: HTMLTableElement | null = null;
-  private rows: HTMLTableCellElement[][] = [];
+  private cells: HTMLDivElement[][] = [];
   private wasmInterface: WasmInterface | null = null;
 
   constructor() {
@@ -38,16 +37,17 @@ export class SudokuUI {
     this.wasmInterface = wasmInterface;
   }
 
-  createTable(sideLength: number): HTMLTableCellElement[][] {
-    this.table = document.createElement("table");
-    this.rows = [];
+  createTable(sideLength: number): HTMLDivElement[][] {
+    this.boardContainer.innerHTML = "";
+    this.cells = [];
 
     for (let y = 0; y < sideLength; ++y) {
-      const row = document.createElement("tr");
-      const cells: HTMLTableCellElement[] = [];
+      const cellsRow: HTMLDivElement[] = [];
 
       for (let x = 0; x < sideLength; ++x) {
-        const cellItem = document.createElement("td");
+        const cellItem = document.createElement("div");
+        cellItem.classList.add("cell");
+
         const textItem = document.createElement("span");
         const innerGrid = document.createElement("div");
 
@@ -64,16 +64,15 @@ export class SudokuUI {
 
         cellItem.setAttribute("data-cell-x", x.toString());
         cellItem.setAttribute("data-cell-y", y.toString());
-        cells.push(cellItem);
-        row.appendChild(cellItem);
+
+        cellsRow.push(cellItem);
+        this.boardContainer.appendChild(cellItem);
       }
 
-      this.rows.push(cells);
-      this.table.appendChild(row);
+      this.cells.push(cellsRow);
     }
 
-    this.boardContainer.appendChild(this.table);
-    return this.rows;
+    return this.cells;
   }
 
   updateCellDisplay(cell: Cell, selectedCell: Cell | null = null): void {
@@ -170,8 +169,8 @@ export class SudokuUI {
   }
 
   // Getters for DOM elements to attach event listeners
-  get cellElements(): HTMLTableCellElement[][] {
-    return this.rows;
+  get cellElements(): HTMLDivElement[][] {
+    return this.cells;
   }
 
   get resetButtonElement(): HTMLButtonElement {

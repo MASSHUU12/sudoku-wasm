@@ -30,7 +30,7 @@ export class WasmInterface {
 
   getBoardData(
     getBoardFunc: Function,
-    cellElements?: HTMLTableCellElement[][],
+    cellElements?: HTMLDivElement[][],
   ): Cell[] {
     const cells = new BigUint64Array(
       this.wasm.memory!.buffer,
@@ -53,11 +53,11 @@ export class WasmInterface {
     return newBoard;
   }
 
-  getBoard(cellElements?: HTMLTableCellElement[][]): Cell[] {
+  getBoard(cellElements?: HTMLDivElement[][]): Cell[] {
     return this.getBoardData(this.wasm.exports!.get_board, cellElements);
   }
 
-  getSolvedBoard(cellElements?: HTMLTableCellElement[][]): Cell[] {
+  getSolvedBoard(cellElements?: HTMLDivElement[][]): Cell[] {
     return this.getBoardData(this.wasm.exports!.get_solved_board, cellElements);
   }
 
