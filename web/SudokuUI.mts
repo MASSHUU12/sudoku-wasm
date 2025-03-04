@@ -96,10 +96,15 @@ export class SudokuUI {
     cell.innerGrid
       .querySelectorAll("div")
       .forEach((noteItem: HTMLDivElement): void => {
-        const value: number = +noteItem.innerText;
-        noteItem.classList.toggle(
-          "note-visible",
-          this.wasmInterface!.getCellNote(value - 1, ...cell.toArray()),
+        const value = +noteItem.innerText;
+        const notePresent = this.wasmInterface!.getCellNote(
+          value - 1,
+          ...cell.toArray(),
+        );
+        noteItem.classList.toggle("note-visible", notePresent);
+        noteItem.setAttribute(
+          "aria-selected",
+          notePresent && selectedCell!.num === value ? "true" : "false",
         );
       });
 

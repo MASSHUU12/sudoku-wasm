@@ -222,6 +222,10 @@ button:hover {
     place-items: center;
 }
 
+#board .inner-grid div[aria-selected="true"] {
+    font-weight: 600;
+}
+
 #board td .inner-grid div {
     opacity: 0;
 }
