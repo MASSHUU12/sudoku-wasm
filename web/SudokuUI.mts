@@ -12,6 +12,8 @@ export class SudokuUI {
   private notesButton: HTMLButtonElement;
   private cells: HTMLDivElement[][] = [];
   private wasmInterface: WasmInterface | null = null;
+  private timerText: HTMLSpanElement;
+  private startTime: number = 0;
 
   constructor() {
     this.boardContainer = document.getElementById("board") as HTMLDivElement;
@@ -31,6 +33,21 @@ export class SudokuUI {
     this.notesButton = document.getElementById(
       "notes-button",
     ) as HTMLButtonElement;
+    this.timerText = document.getElementById(
+      "timer-element",
+    ) as HTMLSpanElement;
+  }
+
+  public resetTimer(): void {
+    this.startTime = Date.now();
+  }
+
+  public updateTimer(): void {
+    const elapsedSeconds = Math.floor((Date.now() - this.startTime) / 1000);
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = elapsedSeconds % 60;
+
+    this.timerText.innerText = `${minutes} minutes ${seconds} seconds`;
   }
 
   setWasmInterface(wasmInterface: WasmInterface): void {
