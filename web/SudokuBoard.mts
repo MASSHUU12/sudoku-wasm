@@ -2,6 +2,7 @@ import { Cell } from "./Cell.mjs";
 import { WasmInterface } from "./WasmInterface.mjs";
 import { SudokuUI } from "./SudokuUI.mjs";
 import { GameState } from "./types.mjs";
+import { EventEmitter } from "./EventEmitter.mjs";
 
 export class SudokuBoard {
   public wasmInterface: WasmInterface;
@@ -10,11 +11,16 @@ export class SudokuBoard {
   private selectedCell: Cell = Cell.invalid();
   private gameState: GameState = GameState.INITIALIZING;
   private notesMode = false;
+  private eventEmitter = new EventEmitter();
 
   constructor(wasmUrl: string, ui: SudokuUI) {
     this.wasmInterface = new WasmInterface(wasmUrl);
     this.ui = ui;
     this.ui.setWasmInterface(this.wasmInterface);
+  }
+
+  public on(event: string, callback: (...args: any[]) => void): void {
+    this.eventEmitter.on(event, callback);
   }
 
   async initialize(): Promise<void> {
@@ -28,6 +34,7 @@ export class SudokuBoard {
     this.wasmInterface.fillRandomBoard();
     this.board = this.wasmInterface.getBoard(cellElements);
     this.gameState = GameState.PLAYING;
+    this.eventEmitter.emit("gameStateChanged", this.gameState);
 
     this.ui.drawBoard(this.board);
   }
@@ -92,7 +99,13 @@ export class SudokuBoard {
 
       // Check if the board is solved
       if (this.wasmInterface.isBoardSolved()) {
+        const previousState = this.gameState;
         this.gameState = GameState.SOLVED;
+        this.eventEmitter.emit(
+          "gameStateChanged",
+          this.gameState,
+          previousState,
+        );
         this.selectedCell = Cell.invalid();
         console.log("Solved");
       }
@@ -105,8 +118,10 @@ export class SudokuBoard {
       return;
     }
 
+    const previousState = this.gameState;
     this.board = this.wasmInterface.getSolvedBoard(this.ui.cellElements);
     this.gameState = GameState.LOCKED;
+    this.eventEmitter.emit("gameStateChanged", this.gameState, previousState);
     this.selectedCell = Cell.invalid();
 
     this.ui.drawBoard(this.board);
@@ -114,7 +129,9 @@ export class SudokuBoard {
   }
 
   randomizeBoard(): void {
+    const previousState = this.gameState;
     this.gameState = GameState.PLAYING;
+    this.eventEmitter.emit("gameStateChanged", this.gameState, previousState);
     this.wasmInterface.fillRandomBoard();
     this.board = this.wasmInterface.getBoard(this.ui.cellElements);
 
@@ -130,6 +147,10 @@ export class SudokuBoard {
       const { x, y, num, prefilled } = newBoard[i];
       this.board[i] = new Cell(x, y, num, prefilled, this.board[i].item);
     }
+
+    const previousState = this.gameState;
+    this.gameState = GameState.PLAYING;
+    this.eventEmitter.emit("gameStateChanged", this.gameState, previousState);
 
     this.ui.drawBoard(this.board, Cell.invalid());
   }
