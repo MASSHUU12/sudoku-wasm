@@ -8,9 +8,10 @@ export class SudokuUI {
     printButton;
     resetButton;
     notesButton;
-    table = null;
-    rows = [];
+    cells = [];
     wasmInterface = null;
+    timerText;
+    startTime = 0;
     constructor() {
         this.boardContainer = document.getElementById("board");
         this.keyboard = document.getElementById("keyboard");
@@ -19,18 +20,28 @@ export class SudokuUI {
         this.printButton = document.getElementById("print-button");
         this.resetButton = document.getElementById("reset-button");
         this.notesButton = document.getElementById("notes-button");
+        this.timerText = document.getElementById("timer-element");
+    }
+    resetTimer() {
+        this.startTime = Date.now();
+    }
+    updateTimer() {
+        const elapsedSeconds = Math.floor((Date.now() - this.startTime) / 1000);
+        const minutes = Math.floor(elapsedSeconds / 60);
+        const seconds = elapsedSeconds % 60;
+        this.timerText.innerText = `${minutes} minutes ${seconds} seconds`;
     }
     setWasmInterface(wasmInterface) {
         this.wasmInterface = wasmInterface;
     }
     createTable(sideLength) {
-        this.table = document.createElement("table");
-        this.rows = [];
+        this.boardContainer.innerHTML = "";
+        this.cells = [];
         for (let y = 0; y < sideLength; ++y) {
-            const row = document.createElement("tr");
-            const cells = [];
+            const cellsRow = [];
             for (let x = 0; x < sideLength; ++x) {
-                const cellItem = document.createElement("td");
+                const cellItem = document.createElement("div");
+                cellItem.classList.add("cell");
                 const textItem = document.createElement("span");
                 const innerGrid = document.createElement("div");
                 innerGrid.classList.add("inner-grid");
@@ -44,14 +55,12 @@ export class SudokuUI {
                 innerGrid.appendChild(hintFragment);
                 cellItem.setAttribute("data-cell-x", x.toString());
                 cellItem.setAttribute("data-cell-y", y.toString());
-                cells.push(cellItem);
-                row.appendChild(cellItem);
+                cellsRow.push(cellItem);
+                this.boardContainer.appendChild(cellItem);
             }
-            this.rows.push(cells);
-            this.table.appendChild(row);
+            this.cells.push(cellsRow);
         }
-        this.boardContainer.appendChild(this.table);
-        return this.rows;
+        return this.cells;
     }
     updateCellDisplay(cell, selectedCell = null) {
         if (!cell.item || !this.wasmInterface)
@@ -65,7 +74,9 @@ export class SudokuUI {
             .querySelectorAll("div")
             .forEach((noteItem) => {
             const value = +noteItem.innerText;
-            noteItem.classList.toggle("note-visible", this.wasmInterface.getCellNote(value - 1, ...cell.toArray()));
+            const notePresent = this.wasmInterface.getCellNote(value - 1, ...cell.toArray());
+            noteItem.classList.toggle("note-visible", notePresent);
+            noteItem.setAttribute("aria-selected", notePresent && selectedCell.num === value ? "true" : "false");
         });
         if (cell.textItem.textContent === "0") {
             cell.item.classList.add("empty-cell");
@@ -111,7 +122,7 @@ export class SudokuUI {
     }
     // Getters for DOM elements to attach event listeners
     get cellElements() {
-        return this.rows;
+        return this.cells;
     }
     get resetButtonElement() {
         return this.resetButton;

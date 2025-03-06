@@ -16,7 +16,7 @@
     /* Cell properties */
     --cell-size: min(3rem, 9vw);
     --cell-font-size: calc(var(--cell-size) * 0.43);
-    --cell-note-font-size: calc(var(--cell-size) * 0.33);
+    --cell-note-font-size: calc(var(--cell-size) * 0.22);
     --cell-bg: var(--color-white);
     --cell-bg-prefilled: hsl(0, 0%, 97%);
     --cell-bg-selected: var(--color-blue);
@@ -87,34 +87,20 @@ button:hover {
 
 /* Board container */
 #board {
+    border: var(--cell-border-thick);
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     grid-template-rows: repeat(9, 1fr);
-    border: var(--cell-border-thick);
     aspect-ratio: 1/1;
     width: min(90vw, min(90vh - 150px, 500px));
-    height: auto; /* Height will be maintained by aspect-ratio */
     margin: 0 auto;
+    background-color: var(--color-white);
 }
 
-/* Make the table work with grid */
-#board table,
-#board tbody,
-#board tr {
-    display: contents;
-}
-
-#board table {
-    border-collapse: collapse;
-    width: 100%;
-    height: 100%;
-}
-
-/* Cell styling */
-#board td {
+#board .cell {
+    border: var(--cell-border);
     position: relative;
     aspect-ratio: 1/1;
-    border: var(--cell-border);
     background-color: var(--cell-bg);
     cursor: pointer;
     user-select: none;
@@ -123,90 +109,180 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-#board td:hover {
-    background-color: hsl(0, 0%, 95%);
+    box-sizing: border-box;
 }
 
 /* Selected cell */
-#board td[aria-selected="true"] {
+#board .cell[aria-selected="true"] {
     background-color: var(--cell-bg-selected);
     font-weight: 600;
 }
 
-#board td[aria-selected="true"]:hover {
+#board .cell[aria-selected="true"]:hover {
     background-color: hsl(210, 100%, 80%);
 }
 
 /* Grid lines */
-#board td:nth-child(3n + 1) {
-    border-left: var(--cell-border-thick);
-}
-
-#board tr:nth-child(3n + 1) td {
-    border-top: var(--cell-border-thick);
-}
-
-#board td:nth-child(9n) {
+/* Every 3rd column (except the right edge) */
+#board .cell:nth-child(3n):not(:nth-child(9n)) {
     border-right: var(--cell-border-thick);
 }
 
-#board tr:nth-child(9n) td {
+/* Every 3rd row (except the bottom edge) */
+#board .cell:nth-child(n + 19):nth-child(-n + 27),
+#board .cell:nth-child(n + 46):nth-child(-n + 54) {
     border-bottom: var(--cell-border-thick);
 }
 
+#board .cell:nth-child(9n) {
+    border-right: none;
+}
+
+#board .cell:nth-child(n + 73):nth-child(-n + 81) {
+    border-bottom: none;
+}
+
+#board .cell:nth-child(-n + 9) {
+    border-top: none;
+}
+
+#board .cell:nth-child(9n + 1) {
+    border-left: none;
+}
+
 /* Highlighted cells */
-#board td.highlight-row:not([aria-selected="true"]):not(.incorrect-cell),
-#board td.highlight-col:not([aria-selected="true"]):not(.incorrect-cell),
-#board td.highlight-num:not([aria-selected="true"]):not(.incorrect-cell),
-#board td.highlight-subgrid:not([aria-selected="true"]):not(.incorrect-cell) {
+#board
+    .cell.highlight-row:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell),
+#board
+    .cell.highlight-col:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell),
+#board
+    .cell.highlight-num:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell),
+#board
+    .cell.highlight-subgrid:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell) {
     background-color: var(--cell-bg-highlight);
 }
 
-#board td.highlight-row:not([aria-selected="true"]):not(.incorrect-cell):hover,
-#board td.highlight-col:not([aria-selected="true"]):not(.incorrect-cell):hover,
-#board td.highlight-num:not([aria-selected="true"]):not(.incorrect-cell):hover,
 #board
-    td.highlight-subgrid:not([aria-selected="true"]):not(
-        .incorrect-cell
-    ):hover {
+    .cell.highlight-row:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell):hover,
+#board
+    .cell.highlight-col:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell):hover,
+#board
+    .cell.highlight-num:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell):hover,
+#board
+    .cell.highlight-subgrid:not(
+        [aria-selected="true"],
+        [data-cell-prefilled="1"]
+    ):not(.incorrect-cell):hover {
     background-color: hsl(211.2, 100%, 90%);
 }
 
-#board td.highlight-num:not([aria-selected="true"]) {
+#board .cell.highlight-num:not([aria-selected="true"]) {
     font-weight: 600;
     filter: invert(100%);
 }
 
 /* Cell states */
-#board td.empty-cell {
+#board .cell.empty-cell {
     color: transparent;
 }
 
-#board td.incorrect-cell {
+#board .cell.empty-cell:hover {
+    background-color: hsl(0, 0%, 90%);
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+#board .cell.empty-cell.highlight-row:hover,
+#board .cell.empty-cell.highlight-col:hover,
+#board .cell.empty-cell.highlight-subgrid:hover {
+    background-color: hsl(211.2, 100%, 88%);
+}
+
+#board .cell.incorrect-cell {
     background-color: var(--cell-bg-incorrect);
 }
 
-#board td.incorrect-cell:hover {
+#board .cell.incorrect-cell:hover {
     background-color: hsl(3, 100%, 64%);
 }
 
-#board td[data-cell-prefilled="1"] {
+#board .cell[data-cell-prefilled="1"] {
     cursor: initial;
     background-color: var(--cell-bg-prefilled);
 }
 
-#board td[data-cell-prefilled="1"][aria-selected="true"] {
+#board .cell[data-cell-prefilled="1"][aria-selected="true"] {
     background-color: var(--cell-bg-highlight);
 }
 
-#board td span {
+#board .cell span {
     font-size: var(--cell-font-size);
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+/* Inner grid */
+#board .inner-grid {
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-sizing: border-box;
+    padding: 2px;
+}
+
+#board .inner-grid div {
+    font-size: calc(var(--cell-size) * 0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: visible;
+}
+
+#board .cell .inner-grid div[aria-selected="true"] {
+    font-weight: 900;
+}
+
+#board .cell .inner-grid div {
+    opacity: 0;
+}
+
+#board .cell .inner-grid .note-visible {
+    opacity: 1;
+    color: var(--color-black);
+    font-weight: normal;
 }
 
 /* Inner grid */
@@ -222,13 +298,8 @@ button:hover {
     place-items: center;
 }
 
-#board td .inner-grid div {
-    opacity: 0;
-}
-
-#board td .inner-grid .note-visible {
-    opacity: 1;
-    color: var(--color-black);
+#board .inner-grid div[aria-selected="true"] {
+    font-weight: 600;
 }
 
 /* Keyboard */
